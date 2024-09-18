@@ -40,6 +40,7 @@ public class ClientDemo {
 
                 System.out.println(e.reason());
                 if (e.errorMessage() != null) {
+                    System.out.println(e.errorMessage());
                     System.out.println(e.errorMessage().code());
                     System.out.println(e.errorMessage().msgCount());
                     System.out.println(e.errorMessage().slaveId());

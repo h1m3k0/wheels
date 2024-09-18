@@ -3,8 +3,6 @@ package com.github.h1m3k0.modbus.core;
 import com.github.h1m3k0.modbus.core.request.*;
 import com.github.h1m3k0.modbus.core.response.*;
 import com.github.h1m3k0.modbus.core.errorres.ModbusError;
-import com.github.h1m3k0.protocols.modbus.core.request.*;
-import com.github.h1m3k0.protocols.modbus.core.response.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 

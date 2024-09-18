@@ -2,7 +2,6 @@ package com.github.h1m3k0.modbus.server;
 
 import com.github.h1m3k0.modbus.core.response.*;
 import com.github.h1m3k0.modbus.server.functional.*;
-import com.github.h1m3k0.protocols.modbus.server.functional.*;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 

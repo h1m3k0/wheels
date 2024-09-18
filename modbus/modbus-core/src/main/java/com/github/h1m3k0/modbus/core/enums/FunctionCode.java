@@ -1,7 +1,6 @@
 package com.github.h1m3k0.modbus.core.enums;
 
 import com.github.h1m3k0.modbus.core.function.*;
-import com.github.h1m3k0.protocols.modbus.core.function.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;

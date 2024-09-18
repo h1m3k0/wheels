@@ -7,9 +7,6 @@ import com.github.h1m3k0.modbus.core.response.*;
 import com.github.h1m3k0.modbus.core.enums.FunctionCode;
 import com.github.h1m3k0.modbus.core.enums.FunctionErrorCode;
 import com.github.h1m3k0.modbus.core.enums.SingleCoil;
-import com.github.h1m3k0.protocols.modbus.core.errorres.*;
-import com.github.h1m3k0.protocols.modbus.core.request.*;
-import com.github.h1m3k0.protocols.modbus.core.response.*;
 import io.netty.buffer.ByteBuf;
 
 public class ModbusDecoder {

@@ -38,7 +38,7 @@ public class ModbusClientUtil {
                     // 地址连续
                     if (lastNode.address() + lastNode.dataType().length() >= node.address()) {
                         // 不超过最大长度
-                        if (node.address() - list.get(0).address() + node.dataType().length() < 256) {
+                        if (node.address() - list.get(0).address() + node.dataType().length() < (0x7d << 1)) {
                             continue;
                         }
                     }

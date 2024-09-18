@@ -10,7 +10,6 @@ import com.github.h1m3k0.modbus.core.request.*;
 import com.github.h1m3k0.modbus.core.response.*;
 import com.github.h1m3k0.modbus.server.handler.*;
 import com.github.h1m3k0.modbus.server.functional.ModbusFunctional;
-import com.github.h1m3k0.protocols.modbus.server.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
