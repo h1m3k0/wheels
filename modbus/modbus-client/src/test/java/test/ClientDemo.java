@@ -4,7 +4,7 @@ package test;
 import com.github.h1m3k0.modbus.client.ModbusClient;
 import com.github.h1m3k0.modbus.client.ModbusClientPool;
 import com.github.h1m3k0.modbus.client.ModbusConfig;
-import com.github.h1m3k0.modbus.client.service.DataType;
+import com.github.h1m3k0.common.bytes.DataType;
 import com.github.h1m3k0.modbus.client.service.ModbusClientUtil;
 import com.github.h1m3k0.modbus.client.service.ModbusNode;
 import com.github.h1m3k0.modbus.core.ModbusException;
@@ -26,7 +26,7 @@ public class ClientDemo {
                 ModbusNode node = new ModbusNode();
                 node.dataModel(DataModel.HoldingRegisters);
                 node.address(address);
-                node.dataType(DataType.i32);
+                node.dataType(DataType.int32);
                 nodeList.add(node);
                 address += 4;
             }

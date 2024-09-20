@@ -1,7 +1,6 @@
 package com.github.h1m3k0.common.bytes;
 
 public class Byte4Number extends ByteNumber<Byte4Number> {
-
     public Byte4Number(int number) {
         super(new byte[]{
                 (byte) ((byte) (number & 0xff000000) >> 0x18),
@@ -23,16 +22,13 @@ public class Byte4Number extends ByteNumber<Byte4Number> {
         super(value, offset, length);
     }
 
+    @Override
+    protected int length() {
+        return 4;
+    }
+
     public Byte4Number(String hex) {
         super(hex.length() == 8 ? hex : null);
     }
 
-    public enum Type {
-        ABCD, CDAB, BADC, DCBA,
-    }
-
-    public Byte4Number type(Type type) {
-        this.type = type.name();
-        return this;
-    }
 }

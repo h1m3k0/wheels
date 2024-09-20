@@ -1,6 +1,7 @@
 package com.github.h1m3k0.modbus.client.service;
 
 import com.github.h1m3k0.common.bytes.ByteNumber;
+import com.github.h1m3k0.common.bytes.ByteType;
 import com.github.h1m3k0.modbus.client.ModbusClient;
 import com.github.h1m3k0.modbus.core.ModbusException;
 import com.github.h1m3k0.modbus.core.enums.DataModel;
@@ -8,10 +9,6 @@ import com.github.h1m3k0.modbus.core.request.ReadCoilsRequest;
 import com.github.h1m3k0.modbus.core.request.ReadDiscreteInputsRequest;
 import com.github.h1m3k0.modbus.core.request.ReadHoldingRegistersRequest;
 import com.github.h1m3k0.modbus.core.request.ReadInputRegistersRequest;
-import com.github.h1m3k0.modbus.core.response.ReadCoilsResponse;
-import com.github.h1m3k0.modbus.core.response.ReadDiscreteInputsResponse;
-import com.github.h1m3k0.modbus.core.response.ReadHoldingRegistersResponse;
-import com.github.h1m3k0.modbus.core.response.ReadInputRegistersResponse;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,22 +25,17 @@ public class ModbusClientUtil {
             nodeList.sort(Comparator.comparing(ModbusNode::address));
             List<List<ModbusNode>> lists = new ArrayList<>();
             {
-                List<ModbusNode> list = new ArrayList<>();
-                lists.add(list);
-                ModbusNode node = nodeList.get(0);
-                lists.get(0).add(node);
-                ModbusNode lastNode = node;
-                for (int i = 1; i < nodeList.size(); list.add(node), lastNode = node, i++) {
-                    node = nodeList.get(i);
-                    // 地址连续
-                    if (lastNode.address() + lastNode.dataType().length() >= node.address()) {
-                        // 不超过最大长度
-                        if (node.address() - list.get(0).address() + node.dataType().length() < (0x7d << 1)) {
-                            continue;
-                        }
-                    }
-                    list = new ArrayList<>();
-                    lists.add(list);
+                List<ModbusNode> list;
+                ModbusNode lastNode;
+                lists.add(list = new ArrayList<>());
+                list.add(lastNode = nodeList.remove(0));
+                for (ModbusNode node : nodeList) {
+                    // 地址不连续
+                    if ((lastNode.address() + lastNode.dataType().length() < node.address())
+                            // 超过最大长度
+                            || (node.address() - list.get(0).address() + node.dataType().length() >= (0x7d << 1)))
+                        lists.add(list = new ArrayList<>());
+                    list.add(lastNode = node);
                 }
             }
             for (List<ModbusNode> modbusNodeList : lists) {
@@ -51,43 +43,32 @@ public class ModbusClientUtil {
                 int quantity = modbusNodeList.get(modbusNodeList.size() - 1).address()
                         - modbusNodeList.get(0).address()
                         + modbusNodeList.get(modbusNodeList.size() - 1).dataType().length();
+                if (dataModel == DataModel.Coils || dataModel == DataModel.DiscreteInput) {
+                    boolean[] bits = null;
+                    if (dataModel == DataModel.Coils) {
+                        bits = client.sendSync(new ReadCoilsRequest(address, quantity)).bits();
+                    }
+                    if (dataModel == DataModel.Coils) {
+                        bits = client.sendSync(new ReadDiscreteInputsRequest(address, quantity)).bits();
+                    }
+                    assert bits != null;
+                    for (ModbusNode node : modbusNodeList) {
+                        node.data(bits[node.address() - modbusNodeList.get(0).address()]);
+                    }
+                }
                 if (dataModel == DataModel.InputRegisters || dataModel == DataModel.HoldingRegisters) {
                     quantity /= 2;
-                }
-                byte[] values = null;
-                switch (dataModel) {
-                    case Coils: {
-                        ReadCoilsResponse response = client.sendSync(new ReadCoilsRequest(address, quantity));
-                        for (ModbusNode modbusNode : modbusNodeList) {
-                            modbusNode.data(response.bits()[modbusNode.address() - modbusNodeList.get(0).address()]);
-                        }
+                    byte[] values = null;
+                    if (dataModel == DataModel.InputRegisters) {
+                        values = client.sendSync(new ReadInputRegistersRequest(address, quantity)).value();
                     }
-                    break;
-                    case DiscreteInput: {
-                        ReadDiscreteInputsResponse response = client.sendSync(new ReadDiscreteInputsRequest(address, quantity));
-                        for (ModbusNode modbusNode : modbusNodeList) {
-                            modbusNode.data(response.bits()[modbusNode.address() - modbusNodeList.get(0).address()]);
-                        }
+                    if (dataModel == DataModel.HoldingRegisters) {
+                        values = client.sendSync(new ReadHoldingRegistersRequest(address, quantity)).value();
                     }
-                    break;
-                    case InputRegisters: {
-                        ReadInputRegistersResponse response = client.sendSync(new ReadInputRegistersRequest(address, quantity));
-                        values = response.value();
-                    }
-                    break;
-                    case HoldingRegisters: {
-                        ReadHoldingRegistersResponse response = client.sendSync(new ReadHoldingRegistersRequest(address, quantity));
-                        values = response.value();
-                    }
-                    break;
-                }
-                // InputRegisters 或 HoldingRegisters
-                if (values != null) {
+                    assert values != null;
                     for (ModbusNode node : modbusNodeList) {
-                        ByteNumber<?> number = ByteNumber.create(values, node.address() - modbusNodeList.get(0).address(), node.dataType().length());
-                        if (node.dataSorted() != null) {
-                            number.type(node.dataSorted());
-                        }
+                        ByteNumber<?> number = ByteNumber.create(values, node.address() - modbusNodeList.get(0).address(), node.dataType().length())
+                                .type(ByteType.get(node.byteType()));
                         switch (node.dataType().type()) {
                             case UINT:
                                 node.data(number.toUInt());
@@ -97,6 +78,9 @@ public class ModbusClientUtil {
                                 break;
                             case FLOAT:
                                 node.data(number.toFloat());
+                                break;
+                            case BIT:
+                                node.data(number.toBit(Integer.parseInt(node.dataType().name().replaceAll("bit", ""))));
                                 break;
                         }
                     }

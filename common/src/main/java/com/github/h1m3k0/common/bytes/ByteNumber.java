@@ -25,12 +25,12 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     };
     protected final byte[] value;
     protected final int offset;
-    protected final int length;
+    protected abstract int length();
     @Getter
-    protected String type;
+    protected ByteType type;
 
-    public number type(String type) {
-        this.type = type.toUpperCase();
+    public number type(ByteType type) {
+        this.type = type;
         return (number) this;
     }
 
@@ -62,10 +62,7 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     }
 
     public ByteNumber(String hex) {
-        if (hex == null) {
-            throw new NumberFormatException();
-        }
-        value = new byte[hex.length() >>> 1];
+        this(new byte[hex.length() >>> 1]);
         for (int i = 0; i < value.length; i++) {
             if ('0' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= '9') {
                 value[i] |= (byte) ((byte) (hex.charAt(i * 2) - '0') << 4);
@@ -86,14 +83,14 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
                 throw new NumberFormatException();
             }
         }
-        offset = 0;
-        length = value.length;
     }
 
     public ByteNumber(byte[] bytes, int offset, int length) {
         this.value = bytes;
         this.offset = offset;
-        this.length = length;
+        if (length != length()) {
+            throw new NumberFormatException();
+        }
     }
 
     public ByteNumber(byte[] bytes) {
@@ -101,7 +98,7 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     }
 
     public long toInt() {
-        switch (this.length) {
+        switch (this.length()) {
             case 1:
                 return (byte) toUInt();
             case 2:
@@ -116,12 +113,12 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     public long toUInt() {
         long num = 0;
         if (this.type != null) {
-            for (int i = 0; i < this.type.length(); i++) {
+            for (int i = 0; i < this.type.name().length(); i++) {
                 num <<= 8;
-                num |= Byte.toUnsignedInt(this.value[this.offset + this.type.charAt(i) - 'A']);
+                num |= Byte.toUnsignedInt(this.value[this.offset + this.type.name().charAt(i) - 'A']);
             }
         } else {
-            for (int i = 0; i < this.length; i++) {
+            for (int i = 0; i < this.length(); i++) {
                 num <<= 8;
                 num |= Byte.toUnsignedInt(this.value[this.offset + i]);
             }
@@ -130,13 +127,26 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     }
 
     public double toFloat() {
-        switch (this.length) {
+        switch (this.length()) {
             case 4:
                 return Float.intBitsToFloat((int) toInt());
             case 8:
                 return Double.longBitsToDouble(toInt());
             default:
-                return Double.NaN;
+                throw new IllegalArgumentException();
+        }
+    }
+
+    public boolean toBit(int index) {
+        if (this.type != null) {
+            for (int i = 0; i < this.type.name().length(); i++) {
+                if (this.type.name().charAt(i) - 'A' == index / 8) {
+                    return (this.value[this.offset + i] & (1 << index)) != 0;
+                }
+            }
+            throw new IllegalArgumentException();
+        } else {
+            return (this.value[this.offset + index / 8] & (1 << index)) != 0;
         }
     }
 }

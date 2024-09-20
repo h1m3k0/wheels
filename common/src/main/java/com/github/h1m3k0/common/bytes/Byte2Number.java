@@ -16,17 +16,13 @@ public class Byte2Number extends ByteNumber<Byte2Number> {
         super(value, offset, length);
     }
 
+    @Override
+    protected int length() {
+        return 2;
+    }
+
     public Byte2Number(String hex) {
         super(hex.length() == 4 ? hex : null);
-    }
-
-    public enum Type {
-        AB, BA,
-    }
-
-    public Byte2Number type(Type type) {
-        super.type = type.name();
-        return this;
     }
 
 }
