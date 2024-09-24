@@ -26,11 +26,6 @@ public class Byte8Number extends ByteNumber<Byte8Number> {
         super(value, offset, length);
     }
 
-    @Override
-    protected int length() {
-        return 8;
-    }
-
     public Byte8Number(String hex) {
         super(hex.length() == 16 ? hex : null);
     }

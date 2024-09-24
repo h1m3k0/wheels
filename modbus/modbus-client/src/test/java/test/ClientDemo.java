@@ -1,6 +1,8 @@
 package test;
 
 
+import com.github.h1m3k0.common.bytes.Byte4Number;
+import com.github.h1m3k0.common.bytes.ByteNumber;
 import com.github.h1m3k0.modbus.client.ModbusClient;
 import com.github.h1m3k0.modbus.client.ModbusClientPool;
 import com.github.h1m3k0.modbus.client.ModbusConfig;

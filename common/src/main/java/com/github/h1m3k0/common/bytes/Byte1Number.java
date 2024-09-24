@@ -15,11 +15,6 @@ public class Byte1Number extends ByteNumber<Byte1Number> {
         super(value, offset, length);
     }
 
-    @Override
-    protected int length() {
-        return 1;
-    }
-
     public Byte1Number(String hex) {
         super(hex.length() == 2 ? hex : null);
     }

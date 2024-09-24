@@ -22,11 +22,6 @@ public class Byte4Number extends ByteNumber<Byte4Number> {
         super(value, offset, length);
     }
 
-    @Override
-    protected int length() {
-        return 4;
-    }
-
     public Byte4Number(String hex) {
         super(hex.length() == 8 ? hex : null);
     }
