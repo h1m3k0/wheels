@@ -9,15 +9,19 @@ import com.github.h1m3k0.modbus.core.request.ReadCoilsRequest;
 import com.github.h1m3k0.modbus.core.request.ReadDiscreteInputsRequest;
 import com.github.h1m3k0.modbus.core.request.ReadHoldingRegistersRequest;
 import com.github.h1m3k0.modbus.core.request.ReadInputRegistersRequest;
+import lombok.AllArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class ModbusClientUtil {
-    public static void select(ModbusClient client, List<ModbusNode> nodes) throws ModbusException {
+/**
+ * 一些实际应用时相关的
+ */
+@AllArgsConstructor
+public class ModbusService {
+    private final ModbusClient client;
+
+    public void query(Collection<ModbusNode> nodes) throws ModbusException {
         Map<DataModel, List<ModbusNode>> nodeMap = nodes.stream().collect(Collectors.groupingBy(ModbusNode::dataModel));
         for (Map.Entry<DataModel, List<ModbusNode>> entry : nodeMap.entrySet()) {
             DataModel dataModel = entry.getKey();

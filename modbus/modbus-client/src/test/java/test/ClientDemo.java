@@ -1,13 +1,10 @@
 package test;
 
 
-import com.github.h1m3k0.common.bytes.Byte4Number;
-import com.github.h1m3k0.common.bytes.ByteNumber;
 import com.github.h1m3k0.modbus.client.ModbusClient;
 import com.github.h1m3k0.modbus.client.ModbusClientPool;
 import com.github.h1m3k0.modbus.client.ModbusConfig;
 import com.github.h1m3k0.common.bytes.DataType;
-import com.github.h1m3k0.modbus.client.service.ModbusClientUtil;
 import com.github.h1m3k0.modbus.client.service.ModbusNode;
 import com.github.h1m3k0.modbus.core.ModbusException;
 import com.github.h1m3k0.modbus.core.enums.DataModel;
@@ -32,7 +29,7 @@ public class ClientDemo {
                 nodeList.add(node);
                 address += 4;
             }
-            ModbusClientUtil.select(client, nodeList);
+            client.service().query(nodeList);
             for (ModbusNode node : nodeList) {
                 System.out.println(node);
             }

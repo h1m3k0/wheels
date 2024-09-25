@@ -1,6 +1,7 @@
 package com.github.h1m3k0.modbus.client;
 
 import com.github.h1m3k0.common.netty.client.Client;
+import com.github.h1m3k0.modbus.client.service.ModbusService;
 import com.github.h1m3k0.modbus.core.ModbusException;
 import com.github.h1m3k0.modbus.core.ModbusMessage;
 import com.github.h1m3k0.modbus.core.enums.ExceptionCause;
@@ -11,12 +12,13 @@ import com.github.h1m3k0.modbus.core.response.ModbusResponse;
 
 import java.util.concurrent.*;
 
-public class ModbusClient extends Client {
+public class ModbusClient extends Client<ModbusConfig, ModbusClient, ModbusClientPool> {
     private final int maxNumber;
     private final Byte slaveId;
     private final long requestTimeout;
     private final long responseTimeout;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ModbusService modbusService = new ModbusService(this);
 
     protected ModbusClient(ModbusClientPool pool, ModbusConfig config) {
         super(pool, config.host(), config.port());
@@ -103,5 +105,9 @@ public class ModbusClient extends Client {
             response extends ModbusResponse<function, request, response, error>,
             error extends ModbusError<function, request, response, error>> response sendSync(request request) throws ModbusException {
         return receive(send(request));
+    }
+
+    public ModbusService service() {
+        return modbusService;
     }
 }

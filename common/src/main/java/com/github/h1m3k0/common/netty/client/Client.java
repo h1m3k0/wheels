@@ -7,14 +7,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public abstract class Client {
-    protected final ClientPool pool;
+public abstract class Client<config extends Config<config, client, pool>, client extends Client<config, client, pool>, pool extends ClientPool<config, client, pool>> {
+    protected final pool pool;
     protected final String host;
     protected final int port;
     public Channel channel;
     protected ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    public Client(ClientPool pool, String host, int port) {
+    public Client(pool pool, String host, int port) {
         this.pool = pool;
         this.host = host;
         this.port = port;

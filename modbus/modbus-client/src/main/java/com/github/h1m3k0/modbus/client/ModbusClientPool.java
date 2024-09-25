@@ -9,7 +9,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.function.Supplier;
 
-public class ModbusClientPool extends ClientPool {
+public class ModbusClientPool extends ClientPool<ModbusConfig, ModbusClient, ModbusClientPool> {
     private final MessageClientCodec messageClientCodec = new MessageClientCodec();
     private final ReadCoilsClientHandler readCoilsClientHandler = new ReadCoilsClientHandler();
     private final ReadDiscreteInputsClientHandler readDiscreteInputsClientHandler = new ReadDiscreteInputsClientHandler();
@@ -54,7 +54,7 @@ public class ModbusClientPool extends ClientPool {
         });
     }
 
-
+    @Override
     public ModbusClient newClient(ModbusConfig config) {
         return new ModbusClient(this, config);
     }
