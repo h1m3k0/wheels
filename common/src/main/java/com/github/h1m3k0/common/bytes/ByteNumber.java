@@ -3,8 +3,6 @@ package com.github.h1m3k0.common.bytes;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
-import java.util.Arrays;
-
 @Accessors(chain = true, fluent = true)
 public abstract class ByteNumber<number extends ByteNumber<number>> {
     /**
@@ -106,6 +104,7 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
 
     /**
      * 不用空格分隔
+     *
      * @param n 进制
      */
     public String toString(int n) {
@@ -113,7 +112,7 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     }
 
     /**
-     * @param n 进制
+     * @param n      进制
      * @param pretty 是否用空格分隔
      */
     public String toString(int n, boolean pretty) {
@@ -185,7 +184,7 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     }
 
     /**
-     * 获取某位的布尔型
+     * 从右向左数 获取某位的布尔型
      *
      * @param index 位
      */
@@ -193,17 +192,23 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         if (this.type != null) {
             for (int i = 0; i < this.type.name().length(); i++) {
                 if (this.type.name().charAt(i) - 'A' == index / 8) {
-                    return (this.value[this.offset + i] & (1 << index)) != 0;
+                    return (this.value[this.value.length - this.offset - i - 1] & (1 << (index % 8))) != 0;
                 }
             }
             throw new IllegalArgumentException();
         } else {
-            return (this.value[this.offset + index / 8] & (1 << index)) != 0;
+            return (this.value[this.value.length - this.offset - index / 8 - 1] & (1 << (index % 8))) != 0;
         }
     }
 
     /**
      * 几位组合成的无符整型
+     *
+     * <p>例如:
+     * <p>对于<code>Byte1Number</code>而言, <code>toInt([0, 1, 2, 3, 4, 5, 6, 7])</code> 与 <code>toInt()</code> 相同
+     * <p>对于<code>Byte2Number</code>而言, <code>toInt([0 ~ 15])</code> 与 <code>toInt()</code> 相同
+     * <p>对于<code>Byte4Number</code>而言, <code>toInt([0 ~ 31])</code> 与 <code>toInt()</code> 相同
+     * <p>对于<code>Byte8Number</code>而言, <code>toInt([0 ~ 63])</code> 与 <code>toInt()</code> 相同
      */
     public long toInt(int... indexes) {
         switch (indexes.length / 8) {
@@ -220,12 +225,18 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
 
     /**
      * 几位组合成的无符整型
+     *
+     * <p>例如:
+     * <p>对于<code>Byte1Number</code>而言, <code>toUInt([0, 1, 2, 3, 4, 5, 6, 7])</code> 与 <code>toUInt()</code> 相同
+     * <p>对于<code>Byte2Number</code>而言, <code>toUInt([0 ~ 15])</code> 与 <code>toUInt()</code> 相同
+     * <p>对于<code>Byte4Number</code>而言, <code>toUInt([0 ~ 31])</code> 与 <code>toUInt()</code> 相同
+     * <p>对于<code>Byte8Number</code>而言, <code>toUInt([0 ~ 63])</code> 与 <code>toUInt()</code> 相同
      */
     public long toUInt(int... indexes) {
         long result = 0;
-        for (int index : indexes) {
+        for (int i = 0; i < indexes.length; i++) {
             result <<= 1;
-            if (toBit(index)) {
+            if (toBit(indexes[indexes.length - i - 1])) {
                 result |= 1;
             }
         }
