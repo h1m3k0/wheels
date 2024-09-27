@@ -22,12 +22,12 @@ public class Byte8Number extends ByteNumber<Byte8Number> {
         super(value);
     }
 
-    public Byte8Number(byte[] value, int offset, int length) {
-        super(value, offset, length);
+    public Byte8Number(byte[] value, int offset) {
+        super(value, offset, 8);
     }
 
     public Byte8Number(String hex) {
-        super(hex.length() == 16 ? hex : null);
+        super((hex = hex.replaceAll(" ", "")).length() == 16 ? hex : null);
     }
 
 }

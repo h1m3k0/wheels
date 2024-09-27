@@ -3,16 +3,12 @@ package com.github.h1m3k0.common.netty.client;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 public abstract class Client<config extends Config<config, client, pool>, client extends Client<config, client, pool>, pool extends ClientPool<config, client, pool>> {
     protected final pool pool;
     protected final String host;
     protected final int port;
     public Channel channel;
-    protected ExecutorService executorService = Executors.newSingleThreadExecutor();
+    protected boolean enable;
 
     public Client(pool pool, String host, int port) {
         this.pool = pool;
@@ -21,27 +17,25 @@ public abstract class Client<config extends Config<config, client, pool>, client
     }
 
     public ChannelFuture connect() {
-        if (executorService.isShutdown() || executorService.isTerminated()) {
-            executorService = Executors.newSingleThreadExecutor();
-        }
+        enable = true;
         return this.reconnect();
     }
 
-    private ChannelFuture reconnect() {
+    private synchronized ChannelFuture reconnect() {
         ChannelFuture channelFuture = pool.bootstrap.connect(host, port);
         channel = channelFuture.channel();
         channel.closeFuture().addListener(listener -> {
             if (pool.group.isShuttingDown() || pool.group.isShutdown() || pool.group.isTerminated()) {
-                executorService.shutdownNow();
-            } else if (!executorService.awaitTermination(100, TimeUnit.MILLISECONDS)) {
-                executorService.execute(this::reconnect);
+                enable = false;
+            } else if (enable) {
+                this.reconnect();
             }
         });
         return channelFuture;
     }
 
     public ChannelFuture close() {
-        executorService.shutdownNow();
+        enable = false;
         return channel.close();
     }
 }

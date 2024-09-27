@@ -11,8 +11,8 @@ public class Byte1Number extends ByteNumber<Byte1Number> {
         super(value);
     }
 
-    public Byte1Number(byte[] value, int offset, int length) {
-        super(value, offset, length);
+    public Byte1Number(byte[] value, int offset) {
+        super(value, offset, 1);
     }
 
     public Byte1Number(String hex) {

@@ -1,6 +1,5 @@
 package com.github.h1m3k0.modbus.client;
 
-
 import com.github.h1m3k0.common.netty.client.ClientPool;
 import com.github.h1m3k0.modbus.client.handler.*;
 import io.netty.channel.ChannelHandler;
@@ -23,21 +22,21 @@ public class ModbusClientPool extends ClientPool<ModbusConfig, ModbusClient, Mod
     private final ReadWriteMultipleRegistersClientHandler readWriteMultipleRegistersClientHandler = new ReadWriteMultipleRegistersClientHandler();
     private final MessageExceptionClientHandler messageExceptionClientHandler = new MessageExceptionClientHandler();
 
+    /**
+     * 不需要handler
+     */
     public ModbusClientPool() {
-        this((ChannelHandler) null);
+        this((Supplier<ChannelHandler>) null);
     }
 
+    /**
+     * handler不是@ChannelHandler.Sharable
+     */
     public ModbusClientPool(Supplier<ChannelHandler> netHandler) {
-        this(netHandler.get());
-    }
-
-    public ModbusClientPool(ChannelHandler netHandler) {
         bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {
-                if (netHandler != null) {
-                    ch.pipeline().addLast(netHandler);
-                }
+                ch.pipeline().addLast(netHandler != null ? netHandler.get() : null);
                 ch.pipeline().addLast(messageClientCodec);
                 ch.pipeline().addLast(readCoilsClientHandler);
                 ch.pipeline().addLast(readDiscreteInputsClientHandler);
@@ -52,6 +51,13 @@ public class ModbusClientPool extends ClientPool<ModbusConfig, ModbusClient, Mod
                 ch.pipeline().addLast(messageExceptionClientHandler);
             }
         });
+    }
+
+    /**
+     * handler是@ChannelHandler.Sharable
+     */
+    public ModbusClientPool(ChannelHandler netHandler) {
+        this(() -> netHandler);
     }
 
     @Override

@@ -3,16 +3,19 @@ package com.github.h1m3k0.common.bytes;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
+import java.util.Arrays;
+
 @Accessors(chain = true, fluent = true)
 public abstract class ByteNumber<number extends ByteNumber<number>> {
+    /**
+     * 根据命名规则获取的默认长度
+     * 自定义子类需要遵守命名规则 或者重写length()方法
+     */
     private int length;
-    protected final byte[] value;
-    protected final int offset;
-    @Getter
-    protected ByteType type;
 
     /**
-     * 自定义ByteNumber子类, 如果不满足命名规则, 就无法获得正确的length属性(-1), 需要重写length()方法
+     * 当前长度
+     * 默认为length 或者重写此方法
      */
     protected int length() {
         if (this.length == 0) {
@@ -25,39 +28,29 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         return this.length;
     }
 
+    /**
+     * 原始数组
+     */
+    protected final byte[] value;
+    /**
+     * 起始位置
+     */
+    protected final int offset;
+    /**
+     * 字节顺序
+     * 与当前数值的类型无关
+     */
+    @Getter
+    protected ByteType type;
 
     public number type(ByteType type) {
         this.type = type;
         return (number) this;
     }
 
-    public static <number extends ByteNumber<number>> number create(byte[] bytes, int offset, int length) {
-        switch (length) {
-            case 8:
-                return (number) new Byte8Number(bytes, offset, length);
-            case 4:
-                return (number) new Byte4Number(bytes, offset, length);
-            case 2:
-                return (number) new Byte2Number(bytes, offset, length);
-            case 1:
-                return (number) new Byte1Number(bytes, offset, length);
-        }
-        throw new NumberFormatException();
-    }
-
-    public static <number extends ByteNumber<number>> number create(byte[] bytes) {
-        return create(bytes, 0, bytes.length);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        for (byte v : value) {
-            builder.append(String.format("%02x", Byte.toUnsignedInt(v)));
-        }
-        return builder.toString();
-    }
-
+    /**
+     * @param hex 16进制字符串
+     */
     public ByteNumber(String hex) {
         this(new byte[hex.length() >>> 1]);
         for (int i = 0; i < value.length; i++) {
@@ -82,6 +75,11 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         }
     }
 
+    /**
+     * @param bytes  原始数组
+     * @param offset 起始为止
+     * @param length 长度(用于判断)
+     */
     public ByteNumber(byte[] bytes, int offset, int length) {
         this.value = bytes;
         this.offset = offset;
@@ -90,23 +88,54 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         }
     }
 
+    /**
+     * @param bytes 原始数组 (默认这个数组只表示当前这一个number)
+     */
     public ByteNumber(byte[] bytes) {
         this(bytes, 0, bytes.length);
     }
 
-    public long toInt() {
-        switch (this.length()) {
-            case 1:
-                return (byte) toUInt();
-            case 2:
-                return (short) toUInt();
-            case 4:
-                return (int) toUInt();
-            default:
-                return toUInt();
-        }
+
+    /**
+     * toString 默认16进制
+     */
+    @Override
+    public String toString() {
+        return toString(0x10);
     }
 
+    /**
+     * 不用空格分隔
+     * @param n 进制
+     */
+    public String toString(int n) {
+        return toString(n, false);
+    }
+
+    /**
+     * @param n 进制
+     * @param pretty 是否用空格分隔
+     */
+    public String toString(int n, boolean pretty) {
+        StringBuilder builder = new StringBuilder();
+        String max = Integer.toString(Byte.toUnsignedInt((byte) -1), n);
+        for (byte v : value) {
+            String num = Integer.toString(Byte.toUnsignedInt(v), n);
+            for (int i = 0; i < max.length() - num.length(); i++) {
+                builder.append('0');
+            }
+            builder.append(num);
+            if (pretty) {
+                builder.append(' ');
+            }
+        }
+        return builder.substring(0, builder.length() - (pretty ? 1 : 0));
+    }
+
+
+    /**
+     * 转为无符整型
+     */
     public long toUInt() {
         long num = 0;
         if (this.type != null) {
@@ -123,6 +152,27 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         return num;
     }
 
+    /**
+     * 转为有符整型
+     * 根据length()决定整型范围
+     */
+    public long toInt() {
+        switch (this.length()) {
+            case 1:
+                return (byte) toUInt();
+            case 2:
+                return (short) toUInt();
+            case 4:
+                return (int) toUInt();
+            default:
+                return toUInt();
+        }
+    }
+
+    /**
+     * 转为浮点数
+     * 根据length()决定单精度/双精度
+     */
     public double toFloat() {
         switch (this.length()) {
             case 4:
@@ -134,6 +184,11 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         }
     }
 
+    /**
+     * 获取某位的布尔型
+     *
+     * @param index 位
+     */
     public boolean toBit(int index) {
         if (this.type != null) {
             for (int i = 0; i < this.type.name().length(); i++) {
@@ -145,5 +200,54 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         } else {
             return (this.value[this.offset + index / 8] & (1 << index)) != 0;
         }
+    }
+
+    /**
+     * 几位组合成的无符整型
+     */
+    public long toInt(int... indexes) {
+        switch (indexes.length / 8) {
+            case 1:
+                return (byte) toUInt(indexes);
+            case 2:
+                return (short) toUInt(indexes);
+            case 4:
+                return (int) toUInt(indexes);
+            default:
+                return toUInt(indexes);
+        }
+    }
+
+    /**
+     * 几位组合成的无符整型
+     */
+    public long toUInt(int... indexes) {
+        long result = 0;
+        for (int index : indexes) {
+            result <<= 1;
+            if (toBit(index)) {
+                result |= 1;
+            }
+        }
+        return result;
+    }
+
+
+    public static <number extends ByteNumber<number>> number create(byte[] bytes, int offset, int length) {
+        switch (length) {
+            case 8:
+                return (number) new Byte8Number(bytes, offset);
+            case 4:
+                return (number) new Byte4Number(bytes, offset);
+            case 2:
+                return (number) new Byte2Number(bytes, offset);
+            case 1:
+                return (number) new Byte1Number(bytes, offset);
+        }
+        throw new NumberFormatException();
+    }
+
+    public static <number extends ByteNumber<number>> number create(byte[] bytes) {
+        return create(bytes, 0, bytes.length);
     }
 }
