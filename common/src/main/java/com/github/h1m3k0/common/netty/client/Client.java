@@ -2,8 +2,11 @@ package com.github.h1m3k0.common.netty.client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 
-public abstract class Client<config extends Config<config, client, pool>, client extends Client<config, client, pool>, pool extends ClientPool<config, client, pool>> {
+import java.util.function.Consumer;
+
+public abstract class Client<config extends Config<config, client, pool>, client extends Client<config, client, pool>, pool extends ClientPool<config, client, pool>> implements AutoCloseable {
     protected final pool pool;
     protected final String host;
     protected final int port;
@@ -34,8 +37,14 @@ public abstract class Client<config extends Config<config, client, pool>, client
         return channelFuture;
     }
 
-    public ChannelFuture close() {
+    @Override
+    public void close() {
+        close(future -> {
+        });
+    }
+
+    public void close(Consumer<ChannelFuture> channelFuture) {
         enable = false;
-        return channel.close();
+        channelFuture.accept(channel.close());
     }
 }

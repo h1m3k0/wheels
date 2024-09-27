@@ -5,7 +5,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-public abstract class ClientPool<config extends Config<config, client, pool>, client extends Client<config, client, pool>, pool extends ClientPool<config, client, pool>> {
+public abstract class ClientPool<config extends Config<config, client, pool>, client extends Client<config, client, pool>, pool extends ClientPool<config, client, pool>> implements AutoCloseable {
     protected final Bootstrap bootstrap = new Bootstrap();
     protected final EventLoopGroup group = new NioEventLoopGroup();
 
@@ -15,6 +15,11 @@ public abstract class ClientPool<config extends Config<config, client, pool>, cl
 
     public void shutdown() {
         group.shutdownGracefully();
+    }
+
+    @Override
+    public void close() {
+        this.shutdown();
     }
 
     public abstract client newClient(config config);
