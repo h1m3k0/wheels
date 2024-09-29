@@ -21,7 +21,8 @@ public class ClientDemo {
                 new Byte[]{null, null, 0, 0},
                 IntTransfer.buildDefault16()).build())) {
             try {
-                try (ModbusClient client = pool.newClient(new ModbusConfig("127.0.0.1"))) {
+                try (ModbusClient client = pool.newClient(new ModbusConfig("127.0.0.1").slaveId((byte) 1))) {
+                    client.connect().await();
                     List<ModbusNode> nodeList = new ArrayList<>();
                     int address = 0;
                     for (int i = 0; i < 10; i++) {

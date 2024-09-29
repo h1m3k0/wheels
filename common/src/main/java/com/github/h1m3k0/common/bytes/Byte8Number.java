@@ -2,7 +2,7 @@ package com.github.h1m3k0.common.bytes;
 
 public class Byte8Number extends ByteNumber<Byte8Number> {
     public Byte8Number(long number) {
-        super(new byte[]{
+        super(new ByteArray(new byte[]{
                 (byte) ((number & 0xff00000000000000L) >> 0x38),
                 (byte) ((number & 0xff000000000000L) >> 0x30),
                 (byte) ((number & 0xff0000000000L) >> 0x28),
@@ -11,19 +11,15 @@ public class Byte8Number extends ByteNumber<Byte8Number> {
                 (byte) ((number & 0xff0000) >> 0x10),
                 (byte) ((number & 0xff00) >> 0x8),
                 (byte) (number & 0xff),
-        });
+        }));
     }
 
     public Byte8Number(double number) {
         this(Double.doubleToLongBits(number));
     }
 
-    public Byte8Number(byte[] value) {
-        super(value);
-    }
-
-    public Byte8Number(byte[] value, int offset) {
-        super(value, offset, 8);
+    public Byte8Number(ByteArray array) {
+        super(array);
     }
 
     public Byte8Number(String hex) {

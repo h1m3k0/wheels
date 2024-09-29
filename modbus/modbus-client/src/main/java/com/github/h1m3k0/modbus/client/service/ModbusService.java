@@ -1,5 +1,6 @@
 package com.github.h1m3k0.modbus.client.service;
 
+import com.github.h1m3k0.common.bytes.ByteArray;
 import com.github.h1m3k0.common.bytes.ByteNumber;
 import com.github.h1m3k0.modbus.client.ModbusClient;
 import com.github.h1m3k0.modbus.core.ModbusException;
@@ -70,7 +71,7 @@ public class ModbusService {
                     }
                     assert values != null;
                     for (ModbusNode node : modbusNodeList) {
-                        ByteNumber<?> number = ByteNumber.create(values, node.address() - modbusNodeList.get(0).address(), node.dataType().length())
+                        ByteNumber<?> number = ByteNumber.create(new ByteArray(values, node.address() - modbusNodeList.get(0).address(), node.dataType().length()))
                                 .type(node.byteType());
                         switch (node.dataType().type()) {
                             case UINT:

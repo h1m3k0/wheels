@@ -29,11 +29,8 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     /**
      * 原始数组
      */
-    protected final byte[] value;
-    /**
-     * 起始位置
-     */
-    protected final int offset;
+    protected ByteArray values;
+
     /**
      * 字节顺序
      * 与当前数值的类型无关
@@ -50,49 +47,35 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
      * @param hex 16进制字符串
      */
     public ByteNumber(String hex) {
-        this(new byte[hex.length() >>> 1]);
-        for (int i = 0; i < value.length; i++) {
+        this(new ByteArray(new byte[hex.length() >>> 1]));
+        for (int i = 0; i < values.length(); i++) {
             if ('0' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= '9') {
-                value[i] |= (byte) ((byte) (hex.charAt(i * 2) - '0') << 4);
+                values.set(i).value((byte) (values.get(i) | (byte) ((byte) (hex.charAt(i * 2) - '0') << 4)));
             } else if ('a' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= 'z') {
-                value[i] |= (byte) ((byte) (hex.charAt(i * 2) - 'a' + 0xa) << 4);
+                values.set(i).value((byte) (values.get(i) | (byte) ((byte) (hex.charAt(i * 2) - 'a' + 0xa) << 4)));
             } else if ('A' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= 'Z') {
-                value[i] |= (byte) ((byte) (hex.charAt(i * 2) - 'A' + 0xA) << 4);
+                values.set(i).value((byte) (values.get(i) | (byte) ((byte) (hex.charAt(i * 2) - 'A' + 0xA) << 4)));
             } else {
                 throw new NumberFormatException();
             }
             if ('0' <= hex.charAt(i * 2 + 1) && hex.charAt(i * 2 + 1) <= '9') {
-                value[i] |= (byte) (hex.charAt(i * 2 + 1) - '0');
+                values.set(i).value((byte) (values.get(i) | (byte) (hex.charAt(i * 2 + 1) - '0')));
             } else if ('a' <= hex.charAt(i * 2 + 1) && hex.charAt(i * 2 + 1) <= 'z') {
-                value[i] |= (byte) (hex.charAt(i * 2 + 1) - 'a' + 0xa);
+                values.set(i).value((byte) (values.get(i) | (byte) (hex.charAt(i * 2 + 1) - 'a' + 0xa)));
             } else if ('A' <= hex.charAt(i * 2 + 1) && hex.charAt(i * 2 + 1) <= 'Z') {
-                value[i] |= (byte) (hex.charAt(i * 2 + 1) - 'A' + 0xA);
+                values.set(i).value((byte) (values.get(i) | (byte) (hex.charAt(i * 2 + 1) - 'A' + 0xA)));
             } else {
                 throw new NumberFormatException();
             }
         }
     }
 
-    /**
-     * @param bytes  原始数组
-     * @param offset 起始为止
-     * @param length 长度(用于判断)
-     */
-    public ByteNumber(byte[] bytes, int offset, int length) {
-        this.value = bytes;
-        this.offset = offset;
-        if (length != this.length()) {
+    public ByteNumber(ByteArray array) {
+        if (array.length() != this.length()) {
             throw new NumberFormatException();
         }
+        this.values = array;
     }
-
-    /**
-     * @param bytes 原始数组 (默认这个数组只表示当前这一个number)
-     */
-    public ByteNumber(byte[] bytes) {
-        this(bytes, 0, bytes.length);
-    }
-
 
     /**
      * toString 默认16进制
@@ -118,7 +101,7 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     public String toString(int n, boolean pretty) {
         StringBuilder builder = new StringBuilder();
         String max = Integer.toString(Byte.toUnsignedInt((byte) -1), n);
-        for (byte v : value) {
+        for (byte v : values) {
             String num = Integer.toString(Byte.toUnsignedInt(v), n);
             for (int i = 0; i < max.length() - num.length(); i++) {
                 builder.append('0');
@@ -140,12 +123,12 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         if (this.type != null) {
             for (int i = 0; i < this.type.name().length(); i++) {
                 num <<= 8;
-                num |= Byte.toUnsignedInt(this.value[this.offset + this.type.name().charAt(i) - 'A']);
+                num |= Byte.toUnsignedInt(this.values.get(this.type.name().charAt(i) - 'A'));
             }
         } else {
             for (int i = 0; i < this.length(); i++) {
                 num <<= 8;
-                num |= Byte.toUnsignedInt(this.value[this.offset + i]);
+                num |= Byte.toUnsignedInt(this.values.get(i));
             }
         }
         return num;
@@ -192,12 +175,12 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         if (this.type != null) {
             for (int i = 0; i < this.type.name().length(); i++) {
                 if (this.type.name().charAt(i) - 'A' == index / 8) {
-                    return (this.value[this.value.length - this.offset - i - 1] & (1 << (index % 8))) != 0;
+                    return (this.values.get(-i - 1) & (1 << (index % 8))) != 0;
                 }
             }
             throw new IllegalArgumentException();
         } else {
-            return (this.value[this.value.length - this.offset - index / 8 - 1] & (1 << (index % 8))) != 0;
+            return (this.values.get(-index / 8 - 1) & (1 << (index % 8))) != 0;
         }
     }
 
@@ -244,21 +227,17 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
     }
 
 
-    public static <number extends ByteNumber<number>> number create(byte[] bytes, int offset, int length) {
-        switch (length) {
+    public static <number extends ByteNumber<number>> number create(ByteArray array) {
+        switch (array.length()) {
             case 8:
-                return (number) new Byte8Number(bytes, offset);
+                return (number) new Byte8Number(array);
             case 4:
-                return (number) new Byte4Number(bytes, offset);
+                return (number) new Byte4Number(array);
             case 2:
-                return (number) new Byte2Number(bytes, offset);
+                return (number) new Byte2Number(array);
             case 1:
-                return (number) new Byte1Number(bytes, offset);
+                return (number) new Byte1Number(array);
         }
         throw new NumberFormatException();
-    }
-
-    public static <number extends ByteNumber<number>> number create(byte[] bytes) {
-        return create(bytes, 0, bytes.length);
     }
 }
