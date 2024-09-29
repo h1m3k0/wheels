@@ -44,11 +44,11 @@ public class ClientDemo {
                     ModbusException e = (ModbusException) ex;
 
                     System.out.println(e.reason());
-                    if (e.errorMessage() != null) {
-                        System.out.println(e.errorMessage());
-                        System.out.println(e.errorMessage().code());
-                        System.out.println(e.errorMessage().msgCount());
-                        System.out.println(e.errorMessage().slaveId());
+                    if (e.message() != null) {
+                        System.out.println(e.message());
+                        System.out.println(e.message().code());
+                        System.out.println(e.message().msgCount());
+                        System.out.println(e.message().slaveId());
                     }
                 } else {
                     ex.printStackTrace();

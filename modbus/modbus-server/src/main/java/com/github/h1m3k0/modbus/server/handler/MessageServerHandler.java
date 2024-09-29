@@ -37,7 +37,7 @@ public abstract class MessageServerHandler<
                     ctx.channel().writeAndFlush(response);
                 }
             } catch (ModbusException e) {
-                ModbusError<?, ?, ?, ?> modbusError = e.errorMessage();
+                ModbusError<?, ?, ?, ?> modbusError = e.message();
                 if (modbusError == null) {
                     modbusError = new UndefinedError(ExceptionCode.Process, request.code());
                 }

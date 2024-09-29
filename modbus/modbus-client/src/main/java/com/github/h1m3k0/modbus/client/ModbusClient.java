@@ -54,7 +54,7 @@ public class ModbusClient extends Client<ModbusConfig, ModbusClient, ModbusClien
                 }
             }
             if (System.currentTimeMillis() - startTime > this.requestTimeout) {
-                throw new ModbusException(ExceptionCause.RequestTimeout);
+                throw new ModbusException(ExceptionCause.RequestTimeout, request);
             }
             msgCount = 0;
         }
@@ -69,12 +69,12 @@ public class ModbusClient extends Client<ModbusConfig, ModbusClient, ModbusClien
                 ModbusMessage<?, ?, ?, ?, ?> message = channel.attr(AttributeKeys.Message(msgCount)).get();
                 if (message instanceof ModbusError) {
                     ModbusError<?, ?, ?, ?> error = (ModbusError<?, ?, ?, ?>) message;
-                    throw new ModbusException(ExceptionCause.ErrorMessage, error);
+                    throw new ModbusException(error);
                 } else {
                     return (response) message;
                 }
             } else {
-                throw new ModbusException(ExceptionCause.ResponseTimeout);
+                throw new ModbusException(ExceptionCause.ResponseTimeout, (ModbusRequest<?, ?, ?, ?>) channel.attr(AttributeKeys.Message(msgCount)).get());
             }
         } catch (InterruptedException e) {
             return null;
@@ -94,7 +94,7 @@ public class ModbusClient extends Client<ModbusConfig, ModbusClient, ModbusClien
             try {
                 future.complete(receive(msgCount));
             } catch (ModbusException e) {
-                future.completeExceptionally(new ModbusException(e.reason(), e.errorMessage()));
+                future.completeExceptionally(e);
             }
         });
         return future;

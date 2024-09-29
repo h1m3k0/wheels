@@ -23,7 +23,7 @@ public class NettyUtil {
         if (buf == null) {
             return -1;
         }
-        buf = buf.duplicate();
+//        buf = buf.duplicate();
         int bufLength = buf.readableBytes();
         int readerIndex = buf.readerIndex();
         int targetLength = target.length;
