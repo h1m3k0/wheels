@@ -4,84 +4,107 @@ import io.netty.buffer.ByteBuf;
 
 import java.util.Iterator;
 
-public class ByteArray implements Iterable<Byte> {
-    private byte[] array;
-    private ByteBuf buf;
-    private final int offset;
-    private final int length;
+public abstract class ByteArray implements Iterable<Byte> {
+    protected final int offset;
+    protected final int length;
 
-    public ByteArray(byte[] array) {
-        this(array, 0, array.length);
-    }
-
-    public ByteArray(byte[] array, int offset, int length) {
-        this.array = array;
+    protected ByteArray(int offset, int length) {
         this.offset = offset;
         this.length = length;
     }
 
-    public ByteArray(ByteBuf buf) {
-        this(buf, buf.readerIndex(), buf.readableBytes());
-    }
+    /**
+     * 需要重写的get方法 因为参数是真实索引 所以不能暴露
+     */
+    protected abstract byte get(int realIndex);
 
-    public ByteArray(ByteBuf buf, int offset, int length) {
-        this.buf = buf;
-        this.offset = offset;
-        this.length = length;
-    }
-
-    private int index(int i) {
-        int index = i % length;
-        if (index < 0) {
-            index += length;
-        }
-        return offset + index;
-    }
-
-    public byte get(int index) {
-        if (array != null) {
-            return array[index(index)];
-        }
-        if (buf != null) {
-            return buf.getByte(index(index));
-        }
-        throw new ArrayStoreException();
-    }
-
-    public Setter set(int index) {
-        if (array != null) {
-            return value -> array[index(index)] = value;
-        }
-        if (buf != null) {
-            return value -> buf.setByte(index(index), value);
-        }
-        throw new ArrayStoreException();
-    }
+    /**
+     * 需要重写的set方法 因为参数是真实索引 所以不能暴露
+     */
+    protected abstract void set(int realIndex, byte value);
 
     public int length() {
         return this.length;
     }
 
-    @Override
-    public Iterator<Byte> iterator() {
-        return new Iterator<Byte>() {
-            private final int offset = ByteArray.this.offset;
-            private final int length = ByteArray.this.length;
-            private int index = 0;
+    public interface IndexData {
+        byte get();
 
+        void set(byte value);
+    }
+
+    /**
+     * 参数为表面的索引 可循环 自动根据offset计算真实索引
+     */
+    public final IndexData index(int index) {
+        index %= this.length;
+        if (index < 0) {
+            index += this.length;
+        }
+        int realIndex = this.offset + index;
+        return new IndexData() {
             @Override
-            public boolean hasNext() {
-                return offset + length < length;
+            public byte get() {
+                return ByteArray.this.get(realIndex);
             }
 
             @Override
-            public Byte next() {
-                return array[offset + index++];
+            public void set(byte value) {
+                ByteArray.this.set(realIndex, value);
             }
         };
     }
 
-    public interface Setter {
-        void value(byte value);
+
+    @Override
+    public Iterator<Byte> iterator() {
+        return new Iterator<Byte>() {
+            private int index = 0;
+
+            @Override
+            public boolean hasNext() {
+                return index < ByteArray.this.length;
+            }
+
+            @Override
+            public Byte next() {
+                return ByteArray.this.index(index++).get();
+            }
+        };
+    }
+
+    public static ByteArray array(byte[] array, int offset, int length) {
+        return new ByteArray(offset, length) {
+            @Override
+            public byte get(int realIndex) {
+                return array[realIndex];
+            }
+
+            @Override
+            public void set(int realIndex, byte value) {
+                array[realIndex] = value;
+            }
+        };
+    }
+
+    public static ByteArray array(byte[] array) {
+        return array(array, 0, array.length);
+    }
+
+    public static ByteArray byteBuf(ByteBuf buf, int offset, int length) {
+        return new ByteArray(offset, length) {
+            @Override
+            public byte get(int realIndex) {
+                return buf.getByte(realIndex);
+            }
+
+            public void set(int realIndex, byte value) {
+                buf.setByte(realIndex, value);
+            }
+        };
+    }
+
+    public static ByteArray byteBuf(ByteBuf buf) {
+        return byteBuf(buf, buf.readerIndex(), buf.readableBytes());
     }
 }

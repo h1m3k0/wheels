@@ -71,7 +71,7 @@ public class ModbusService {
                     }
                     assert values != null;
                     for (ModbusNode node : modbusNodeList) {
-                        ByteNumber<?> number = ByteNumber.create(new ByteArray(values, node.address() - modbusNodeList.get(0).address(), node.dataType().length()))
+                        ByteNumber<?> number = ByteNumber.create(ByteArray.array(values, node.address() - modbusNodeList.get(0).address(), node.dataType().length()))
                                 .type(node.byteType());
                         switch (node.dataType().type()) {
                             case UINT:

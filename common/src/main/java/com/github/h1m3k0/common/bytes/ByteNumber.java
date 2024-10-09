@@ -47,23 +47,23 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
      * @param hex 16进制字符串
      */
     public ByteNumber(String hex) {
-        this(new ByteArray(new byte[hex.length() >>> 1]));
+        this(ByteArray.array(new byte[hex.length() >>> 1]));
         for (int i = 0; i < values.length(); i++) {
             if ('0' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= '9') {
-                values.set(i).value((byte) (values.get(i) | (byte) ((byte) (hex.charAt(i * 2) - '0') << 4)));
+                values.index(i).set((byte) (values.index(i).get() | (byte) ((byte) (hex.charAt(i * 2) - '0') << 4)));
             } else if ('a' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= 'z') {
-                values.set(i).value((byte) (values.get(i) | (byte) ((byte) (hex.charAt(i * 2) - 'a' + 0xa) << 4)));
+                values.index(i).set((byte) (values.index(i).get() | (byte) ((byte) (hex.charAt(i * 2) - 'a' + 0xa) << 4)));
             } else if ('A' <= hex.charAt(i * 2) && hex.charAt(i * 2) <= 'Z') {
-                values.set(i).value((byte) (values.get(i) | (byte) ((byte) (hex.charAt(i * 2) - 'A' + 0xA) << 4)));
+                values.index(i).set((byte) (values.index(i).get() | (byte) ((byte) (hex.charAt(i * 2) - 'A' + 0xA) << 4)));
             } else {
                 throw new NumberFormatException();
             }
             if ('0' <= hex.charAt(i * 2 + 1) && hex.charAt(i * 2 + 1) <= '9') {
-                values.set(i).value((byte) (values.get(i) | (byte) (hex.charAt(i * 2 + 1) - '0')));
+                values.index(i).set((byte) (values.index(i).get() | (byte) (hex.charAt(i * 2 + 1) - '0')));
             } else if ('a' <= hex.charAt(i * 2 + 1) && hex.charAt(i * 2 + 1) <= 'z') {
-                values.set(i).value((byte) (values.get(i) | (byte) (hex.charAt(i * 2 + 1) - 'a' + 0xa)));
+                values.index(i).set((byte) (values.index(i).get() | (byte) (hex.charAt(i * 2 + 1) - 'a' + 0xa)));
             } else if ('A' <= hex.charAt(i * 2 + 1) && hex.charAt(i * 2 + 1) <= 'Z') {
-                values.set(i).value((byte) (values.get(i) | (byte) (hex.charAt(i * 2 + 1) - 'A' + 0xA)));
+                values.index(i).set((byte) (values.index(i).get() | (byte) (hex.charAt(i * 2 + 1) - 'A' + 0xA)));
             } else {
                 throw new NumberFormatException();
             }
@@ -123,12 +123,12 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         if (this.type != null) {
             for (int i = 0; i < this.type.name().length(); i++) {
                 num <<= 8;
-                num |= Byte.toUnsignedInt(this.values.get(this.type.name().charAt(i) - 'A'));
+                num |= Byte.toUnsignedInt(this.values.index(this.type.name().charAt(i) - 'A').get());
             }
         } else {
             for (int i = 0; i < this.length(); i++) {
                 num <<= 8;
-                num |= Byte.toUnsignedInt(this.values.get(i));
+                num |= Byte.toUnsignedInt(this.values.index(i).get());
             }
         }
         return num;
@@ -175,12 +175,12 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         if (this.type != null) {
             for (int i = 0; i < this.type.name().length(); i++) {
                 if (this.type.name().charAt(i) - 'A' == index / 8) {
-                    return (this.values.get(-i - 1) & (1 << (index % 8))) != 0;
+                    return (this.values.index(-i - 1).get() & (1 << (index % 8))) != 0;
                 }
             }
             throw new IllegalArgumentException();
         } else {
-            return (this.values.get(-index / 8 - 1) & (1 << (index % 8))) != 0;
+            return (this.values.index(-index / 8 - 1).get() & (1 << (index % 8))) != 0;
         }
     }
 
