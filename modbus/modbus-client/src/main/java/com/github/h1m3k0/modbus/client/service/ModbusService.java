@@ -5,10 +5,7 @@ import com.github.h1m3k0.common.bytes.ByteNumber;
 import com.github.h1m3k0.modbus.client.ModbusClient;
 import com.github.h1m3k0.modbus.core.ModbusException;
 import com.github.h1m3k0.modbus.core.enums.DataModel;
-import com.github.h1m3k0.modbus.core.request.ReadCoilsRequest;
-import com.github.h1m3k0.modbus.core.request.ReadDiscreteInputsRequest;
-import com.github.h1m3k0.modbus.core.request.ReadHoldingRegistersRequest;
-import com.github.h1m3k0.modbus.core.request.ReadInputRegistersRequest;
+import com.github.h1m3k0.modbus.core.request.*;
 import lombok.AllArgsConstructor;
 
 import java.util.*;
@@ -21,7 +18,14 @@ import java.util.stream.Collectors;
 public class ModbusService {
     private final ModbusClient client;
 
+    /**
+     * 需要client有默认slaveId
+     */
     public void query(Collection<ModbusNode> nodes) throws ModbusException {
+        query(nodes, (byte) 0);
+    }
+
+    public void query(Collection<ModbusNode> nodes, byte slaveId) throws ModbusException {
         Map<DataModel, List<ModbusNode>> nodeMap = nodes.stream().collect(Collectors.groupingBy(ModbusNode::dataModel));
         for (Map.Entry<DataModel, List<ModbusNode>> entry : nodeMap.entrySet()) {
             DataModel dataModel = entry.getKey();
@@ -53,7 +57,7 @@ public class ModbusService {
                         bits = client.sendSync(new ReadCoilsRequest(address, quantity)).bits();
                     }
                     if (dataModel == DataModel.Coils) {
-                        bits = client.sendSync(new ReadDiscreteInputsRequest(address, quantity)).bits();
+                        bits = client.sendSync(new ReadDiscreteInputsRequest(address, quantity).slaveId(slaveId)).bits();
                     }
                     assert bits != null;
                     for (ModbusNode node : modbusNodeList) {
@@ -64,10 +68,10 @@ public class ModbusService {
                     quantity /= 2;
                     byte[] values = null;
                     if (dataModel == DataModel.InputRegisters) {
-                        values = client.sendSync(new ReadInputRegistersRequest(address, quantity)).value();
+                        values = client.sendSync(new ReadInputRegistersRequest(address, quantity).slaveId(slaveId)).value();
                     }
                     if (dataModel == DataModel.HoldingRegisters) {
-                        values = client.sendSync(new ReadHoldingRegistersRequest(address, quantity)).value();
+                        values = client.sendSync(new ReadHoldingRegistersRequest(address, quantity).slaveId(slaveId)).value();
                     }
                     assert values != null;
                     for (ModbusNode node : modbusNodeList) {
