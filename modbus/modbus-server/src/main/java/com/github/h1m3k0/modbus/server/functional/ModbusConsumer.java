@@ -1,5 +1,6 @@
-package com.github.h1m3k0.modbus.core;
+package com.github.h1m3k0.modbus.server.functional;
 
+import com.github.h1m3k0.modbus.core.ModbusException;
 import com.github.h1m3k0.modbus.core.request.ModbusRequest;
 
 @FunctionalInterface

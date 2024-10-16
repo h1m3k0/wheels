@@ -33,6 +33,44 @@ public class ServerDemo {
             }
         }
         ModbusServer modbusServer = ModbusServerFactory.builder(port)
+                .setReadCoilsFunctional((address, quantity) -> {
+                    boolean[] booleans = new boolean[quantity];
+                    for (int i = 0; i < quantity; i++) {
+                        if (map1.containsKey(i + address)) {
+                            booleans[i - address] = map1.get(i);
+                        }
+                    }
+                    return booleans;
+                })
+                .setReadDiscreteInputsFunctional((address, quantity) -> {
+                    boolean[] booleans = new boolean[quantity];
+                    for (int i = 0; i < quantity; i++) {
+                        if (map1.containsKey(i + address)) {
+                            booleans[i - address] = map1.get(i);
+                        }
+                    }
+                    return booleans;
+                })
+                .setReadHoldingRegistersFunctional((address, quantity) -> {
+                    byte[] bytes = new byte[quantity << 1];
+                    for (int i = 0; i < quantity; i++) {
+                        if (map2.containsKey(address + i)) {
+                            bytes[i * 2] = (byte) ((map2.get(address + i) & 0xFF00) >>> 8);
+                            bytes[i * 2 + 1] = (byte) (map2.get(address + i) & 0x00FF);
+                        }
+                    }
+                    return bytes;
+                })
+                .setReadInputRegistersFunctional((address, quantity) -> {
+                    byte[] bytes = new byte[quantity << 1];
+                    for (int i = 0; i < quantity; i++) {
+                        if (map2.containsKey(address + i)) {
+                            bytes[i * 2] = (byte) ((map2.get(address + i) & 0xFF00) >>> 8);
+                            bytes[i * 2 + 1] = (byte) (map2.get(address + i) & 0x00FF);
+                        }
+                    }
+                    return bytes;
+                })
                 .setReadCoils(request -> {
                     boolean[] booleans = new boolean[request.quantity()];
                     for (int i = 0; i < request.quantity(); i++) {

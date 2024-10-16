@@ -1,6 +1,6 @@
 package com.github.h1m3k0.modbus.server.handler;
 
-import com.github.h1m3k0.modbus.core.ModbusConsumer;
+import com.github.h1m3k0.modbus.server.functional.ModbusConsumer;
 import com.github.h1m3k0.modbus.core.errorres.WriteMultipleRegistersError;
 import com.github.h1m3k0.modbus.core.function.WriteMultipleRegistersFunction;
 import com.github.h1m3k0.modbus.core.request.WriteMultipleRegistersRequest;

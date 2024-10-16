@@ -3,7 +3,7 @@ package com.github.h1m3k0.modbus.server;
 import com.github.h1m3k0.common.netty.decoder.HeadLengthDecoder;
 import com.github.h1m3k0.common.netty.decoder.HeadLengthDecoderFactory;
 import com.github.h1m3k0.common.netty.transfer.IntTransfer;
-import com.github.h1m3k0.modbus.core.ModbusConsumer;
+import com.github.h1m3k0.modbus.server.functional.ModbusConsumer;
 import com.github.h1m3k0.modbus.core.errorres.*;
 import com.github.h1m3k0.modbus.core.function.*;
 import com.github.h1m3k0.modbus.core.request.*;
