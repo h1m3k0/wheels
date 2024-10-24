@@ -11,6 +11,7 @@
     <modules>
         <module>common</module>
         <module>modbus</module>
+        <module>network</module>
     </modules>
 
     <properties>
@@ -30,5 +31,15 @@
             <version>4.1.112.Final</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
