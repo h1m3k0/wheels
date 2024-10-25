@@ -1,8 +1,10 @@
 package com.github.h1m3k0.network.proxy.server;
 
+import com.github.h1m3k0.network.proxy.common.AttributeKeys;
 import com.github.h1m3k0.network.proxy.common.Message;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -10,12 +12,11 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.AttributeKey;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class ProxyServer {
-    private final AttributeKey<Channel> channelKey = AttributeKey.<Channel>valueOf("channel");
 
     public ProxyServer(final int port) {
         JieServer jieServer = new JieServer();
@@ -28,7 +29,7 @@ public class ProxyServer {
                         ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                             @Override
                             public void channelActive(ChannelHandlerContext ctx) throws Exception {
-                                ctx.channel().attr(JieServer.channelMapKey).set(new HashMap<>());
+                                ctx.channel().attr(AttributeKeys.channelMapKey).set(new HashMap<>());
                             }
 
                             @Override
@@ -40,10 +41,13 @@ public class ProxyServer {
                                     byte[] bytes = new byte[copyBuf.readableBytes()];
                                     copyBuf.readBytes(bytes);
                                     Message message = new Message(bytes);
+                                    System.out.println(message);
                                     if (message.getType() == 1) { // login
                                         int port = Integer.parseInt(message.getMessage());
                                         jieServer.bind(port, ctx.channel());
-                                    } else {
+                                    } else {  // 接收 本地 => 云 的(响应)数据
+                                        Channel channel = ctx.channel().attr(AttributeKeys.channelMapKey).get().get(message.getKey());
+                                        channel.writeAndFlush(Unpooled.wrappedBuffer(message.getMessage().getBytes(StandardCharsets.UTF_8)));
 
                                     }
                                 }

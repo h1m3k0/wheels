@@ -1,23 +1,25 @@
 package com.github.h1m3k0.network.proxy.server;
 
+import com.github.h1m3k0.network.proxy.common.AttributeKeys;
 import com.github.h1m3k0.network.proxy.common.Message;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.AttributeKey;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class JieServer {
-    public static final AttributeKey<Channel> channelKey = AttributeKey.valueOf("channel");
-    public static final AttributeKey<String> thisKey = AttributeKey.valueOf("this");
-    public static final AttributeKey<Map<String, Channel>> channelMapKey = AttributeKey.valueOf("channelMap");
+    private final Map<Integer, Channel> channelMap = new HashMap<>();
     private final ServerBootstrap bootstrap = new ServerBootstrap()
             .channel(NioServerSocketChannel.class)
             .group(new NioEventLoopGroup(), new NioEventLoopGroup())
@@ -28,23 +30,37 @@ public class JieServer {
                         @Override
                         public void channelActive(ChannelHandlerContext ctx) throws Exception {
                             String key = UUID.randomUUID().toString();
-                            ctx.channel().attr(thisKey).set(key);
-                            ctx.channel().attr(channelKey).get().attr(channelMapKey).get().put(key, ctx.channel());
+                            Channel thisChannel = ctx.channel();
+                            thisChannel.attr(AttributeKeys.thisKey).set(key);
+                            InetSocketAddress address = (InetSocketAddress) ctx.channel().localAddress();
+                            Channel channel = channelMap.get(address.getPort());
+                            thisChannel.attr(AttributeKeys.channelKey).set(channel);
+                            channel.attr(AttributeKeys.channelMapKey).get().put(key, thisChannel);
+                            Message message = new Message();
+                            message.setType(1);
+                            message.setKey(key);
+                            channel.writeAndFlush(Unpooled.wrappedBuffer(message.toBytes()));
                         }
 
                         @Override
                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                             // 客户 => 云
-                            Channel channel = ctx.channel().attr(channelKey).get();
-                            String key = ctx.channel().attr(thisKey).get();
-                            Message message = new Message(null);
-                            channel.writeAndFlush(message);
+                            Channel channel = ctx.channel().attr(AttributeKeys.channelKey).get();
+                            String key = ctx.channel().attr(AttributeKeys.thisKey).get();
+                            Message message = new Message();
+                            message.setKey(key);
+                            ByteBuf buf = (ByteBuf) msg;
+                            byte[] bytes = new byte[buf.readableBytes()];
+                            buf.readBytes(bytes);
+                            message.setMessage(new String(bytes, StandardCharsets.UTF_8));
+                            channel.writeAndFlush(Unpooled.wrappedBuffer(message.toBytes()));
                         }
                     });
                 }
             });
 
     public void bind(int port, Channel channel) {
-        bootstrap.bind(port).syncUninterruptibly().channel().attr(channelKey).set(channel);
+        bootstrap.bind(port).syncUninterruptibly();
+        channelMap.put(port, channel);
     }
 }
