@@ -22,7 +22,11 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyPacket> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.channel().writeAndFlush(new ProxyPacket(
+        Channel bossChannel = ctx.channel();
+        while (bossChannel.attr(AttributeKeys.targetWorkerPort).get() == null) {
+            Thread.sleep(1);
+        }
+        bossChannel.writeAndFlush(new ProxyPacket(
                 new RegisterMessage(ctx.channel().attr(AttributeKeys.targetWorkerPort).get()
                 )).toBuf());
     }

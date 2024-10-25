@@ -29,7 +29,8 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyPacket> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ctx.channel().attr(AttributeKeys.linkChannel).get().close();
+        Channel bossChannel = ctx.channel();
+        bossChannel.attr(AttributeKeys.linkChannel).get().close();
     }
 
     @Override
