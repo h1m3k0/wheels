@@ -114,6 +114,17 @@ public abstract class ByteNumber<number extends ByteNumber<number>> {
         return builder.substring(0, builder.length() - (pretty ? 1 : 0));
     }
 
+    /**
+     * 转为byte[] (不建议)
+     */
+    public byte[] toBytes() {
+        byte[] bytes = new byte[this.length()];
+        for (int i = 0; i < this.length(); i++) {
+            bytes[i] = this.values.get(i);
+        }
+        return bytes;
+    }
+
 
     /**
      * 转为无符整型

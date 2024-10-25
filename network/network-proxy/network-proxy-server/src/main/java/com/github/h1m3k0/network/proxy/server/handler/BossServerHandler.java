@@ -1,0 +1,64 @@
+package com.github.h1m3k0.network.proxy.server.handler;
+
+import com.github.h1m3k0.network.proxy.common.DataMessage;
+import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
+import com.github.h1m3k0.network.proxy.common.ProxyPacket;
+import com.github.h1m3k0.network.proxy.common.RegisterMessage;
+import com.github.h1m3k0.network.proxy.server.AttributeKeys;
+import com.github.h1m3k0.network.proxy.server.WorkerServer;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+
+import java.util.HashMap;
+
+@ChannelHandler.Sharable
+public class BossServerHandler extends SimpleChannelInboundHandler<ProxyPacket> {
+    private final WorkerServer workerServer;
+
+    public BossServerHandler(WorkerServer workerServer) {
+        this.workerServer = workerServer;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.channel().attr(AttributeKeys.workerChannelMap).set(new HashMap<>());
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ctx.channel().attr(AttributeKeys.linkChannel).get().close();
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, ProxyPacket packet) throws Exception {
+        Channel bossChannel = ctx.channel();
+        switch (packet.type()) {
+            case Data: {
+                DataMessage message = (DataMessage) packet.message();
+                Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
+                workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
+                break;
+            }
+            case Register:{
+                RegisterMessage message = (RegisterMessage) packet.message();
+                workerServer.bind(message.port(), bossChannel);
+                break;
+            }
+            case Disconnect: {
+                DisconnectMessage message = (DisconnectMessage) packet.message();
+                Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
+                workerChannel.close();
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace(System.err);
+        ctx.close();
+    }
+}
