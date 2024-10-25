@@ -12,6 +12,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 public class ProxyClient {
     private final FaClient faClient = new FaClient();
@@ -42,6 +43,8 @@ public class ProxyClient {
                                 if (message.getType() == 1) {
                                     ctx.channel().attr(AttributeKeys.channelMapKey).set(new HashMap<>());
                                     faClient.connect("127.0.0.1", 12302, ctx.channel(), key);
+                                } else if (message.getType() == 2) {
+                                    ctx.channel().attr(AttributeKeys.channelMapKey).get().get(message.getKey()).close();
                                 } else {
                                     String data = message.getMessage();
                                     byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
@@ -53,9 +56,10 @@ public class ProxyClient {
                     });
                 }
             });
-    public void connect(String host, int port, int thisPort) {
+    public void connect(String host, int port, int thisPort) throws ExecutionException, InterruptedException {
         ChannelFuture channelFuture = bootstrap.connect(host, port);
         channelFuture.channel().attr(AttributeKeys.portKey).set(thisPort);
         channelFuture.syncUninterruptibly();
+        channelFuture.get();
     }
 }

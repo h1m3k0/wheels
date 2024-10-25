@@ -33,6 +33,11 @@ public class ProxyServer {
                             }
 
                             @Override
+                            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                                ctx.channel().attr(AttributeKeys.channelKey).get().close();
+                            }
+
+                            @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                 // 服务 => 云
                                 if (msg instanceof ByteBuf) {
@@ -41,7 +46,6 @@ public class ProxyServer {
                                     byte[] bytes = new byte[copyBuf.readableBytes()];
                                     copyBuf.readBytes(bytes);
                                     Message message = new Message(bytes);
-                                    System.out.println(message);
                                     if (message.getType() == 1) { // login
                                         int port = Integer.parseInt(message.getMessage());
                                         jieServer.bind(port, ctx.channel());
@@ -53,6 +57,12 @@ public class ProxyServer {
                                 }
 
                                 super.channelRead(ctx, msg);
+                            }
+
+                            @Override
+                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                                cause.printStackTrace();
+                                ctx.close();
                             }
                         });
                     }

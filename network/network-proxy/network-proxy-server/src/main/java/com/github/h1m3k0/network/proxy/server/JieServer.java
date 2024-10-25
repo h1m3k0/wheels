@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 public class JieServer {
     private final Map<Integer, Channel> channelMap = new HashMap<>();
@@ -43,6 +44,16 @@ public class JieServer {
                         }
 
                         @Override
+                        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                            String key = ctx.channel().attr(AttributeKeys.thisKey).get();
+                            Message message = new Message();
+                            message.setType(2);
+                            message.setKey(key);
+                            Channel channel = ctx.channel().attr(AttributeKeys.channelKey).get();
+                            channel.writeAndFlush(Unpooled.wrappedBuffer(message.toBytes()));
+                        }
+
+                        @Override
                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                             // 客户 => 云
                             Channel channel = ctx.channel().attr(AttributeKeys.channelKey).get();
@@ -59,8 +70,10 @@ public class JieServer {
                 }
             });
 
-    public void bind(int port, Channel channel) {
-        bootstrap.bind(port).syncUninterruptibly();
+    public void bind(int port, Channel channel) throws ExecutionException, InterruptedException {
+        ChannelFuture channelFuture = bootstrap.bind(port);
         channelMap.put(port, channel);
+        channel.attr(AttributeKeys.channelKey).set(channelFuture.channel());
+        channelFuture.get();
     }
 }
