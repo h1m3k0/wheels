@@ -31,7 +31,7 @@ public abstract class Client<config extends Config<config, client, pool>, client
             if (pool.group.isShuttingDown() || pool.group.isShutdown() || pool.group.isTerminated()) {
                 enable = false;
             } else if (enable) {
-                this.reconnect();
+                this.connect();
             }
         });
         return channelFuture;

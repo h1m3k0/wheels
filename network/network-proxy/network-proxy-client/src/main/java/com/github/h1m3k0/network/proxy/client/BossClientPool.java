@@ -5,6 +5,7 @@ import com.github.h1m3k0.network.proxy.client.handler.BossClientHandler;
 import com.github.h1m3k0.network.proxy.common.ProxyPacketDecoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 public class BossClientPool extends ClientPool<BossConfig, BossClient, BossClientPool> {
 
@@ -14,6 +15,7 @@ public class BossClientPool extends ClientPool<BossConfig, BossClient, BossClien
         bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {
+                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(10240, 0, 4));
                 ch.pipeline().addLast(decoder);
                 ch.pipeline().addLast(handler);
             }

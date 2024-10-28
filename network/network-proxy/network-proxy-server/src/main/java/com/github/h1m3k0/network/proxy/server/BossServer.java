@@ -7,6 +7,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 public class BossServer {
 
@@ -25,6 +26,7 @@ public class BossServer {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(10240, 0, 4));
                         ch.pipeline().addLast(decoder);
                         ch.pipeline().addLast(handler);
                     }
