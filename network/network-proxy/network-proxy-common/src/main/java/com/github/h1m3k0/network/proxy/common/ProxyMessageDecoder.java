@@ -23,6 +23,9 @@ public class ProxyMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
             case Register:
                 out.add(new RegisterMessage(bytes));
                 break;
+            case UnRegister:
+                out.add(new UnRegisterMessage(bytes));
+                break;
             case Connect:
                 out.add(new ConnectMessage(bytes));
                 break;

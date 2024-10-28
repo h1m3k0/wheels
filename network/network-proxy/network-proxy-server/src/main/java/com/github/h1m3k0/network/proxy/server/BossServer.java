@@ -12,29 +12,22 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 public class BossServer {
 
     /**
-     *
      * @param port 主服务监听的端口号
      */
     public BossServer(final int port) {
-        WorkerServer workerServer = new WorkerServer();
         ProxyMessageDecoder decoder = new ProxyMessageDecoder();
-        BossServerHandler handler = new BossServerHandler(workerServer);
+        BossServerHandler handler = new BossServerHandler(new WorkerServer());
 
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.channel(NioServerSocketChannel.class)
                 .group(new NioEventLoopGroup(), new NioEventLoopGroup())
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
-                    protected void initChannel(NioSocketChannel ch) throws Exception {
+                    protected void initChannel(NioSocketChannel ch) {
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(10240, 0, 4));
-                        ch.pipeline().addLast(decoder);
-                        ch.pipeline().addLast(handler);
+                        ch.pipeline().addLast(decoder, handler);
                     }
                 });
-        try {
-            bootstrap.bind(port).sync();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        bootstrap.bind(port).syncUninterruptibly();
     }
 }

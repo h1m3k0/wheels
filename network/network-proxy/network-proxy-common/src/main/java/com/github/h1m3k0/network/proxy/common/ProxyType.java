@@ -13,6 +13,7 @@ import java.util.Map;
 public enum ProxyType {
     Data(0),
     Register(1),
+    UnRegister(2),
     Connect(3),
     Disconnect(4),
     Undefined(null),

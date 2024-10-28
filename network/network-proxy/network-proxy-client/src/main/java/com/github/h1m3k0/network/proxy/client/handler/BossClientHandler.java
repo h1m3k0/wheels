@@ -36,6 +36,12 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
                 }
                 break;
             }
+            case UnRegister: {
+                UnRegisterMessage message = (UnRegisterMessage) proxyMessage;
+                System.out.println(message.port() + "注册失败");
+
+                break;
+            }
             case Connect: {
                 ConnectMessage message = (ConnectMessage) proxyMessage;
                 bossChannel.attr(AttributeKeys.workerChannelMap).set(new HashMap<>());
