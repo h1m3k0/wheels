@@ -1,6 +1,7 @@
 package com.github.h1m3k0.network.proxy.client;
 
 import com.github.h1m3k0.common.netty.client.Client;
+import com.github.h1m3k0.network.proxy.common.RegisterMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
@@ -17,7 +18,12 @@ public class BossClient extends Client<BossConfig, BossClient, BossClientPool> {
         Channel bossChannel = channelFuture.channel();
         bossChannel.attr(AttributeKeys.thisWorkerHost).set(config.thisWorkerHost());
         bossChannel.attr(AttributeKeys.thisWorkerPort).set(config.thisWorkerPort());
-        bossChannel.attr(AttributeKeys.targetWorkerPort).set(config.targetWorkerPort());
+        channelFuture.addListener(future -> {
+            if (future.isSuccess()) {
+                bossChannel.writeAndFlush(new RegisterMessage(config.targetWorkerPort()).toBuf());
+            }
+        });
+
         return channelFuture;
     }
 }

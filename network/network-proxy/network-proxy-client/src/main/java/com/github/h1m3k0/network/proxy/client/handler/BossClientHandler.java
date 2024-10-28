@@ -11,6 +11,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 @ChannelHandler.Sharable
 public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage> {
@@ -21,22 +22,18 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        Channel bossChannel = ctx.channel();
-        while (bossChannel.attr(AttributeKeys.targetWorkerPort).get() == null) {
-            Thread.sleep(1);
-        }
-        bossChannel.writeAndFlush(new RegisterMessage(ctx.channel().attr(AttributeKeys.targetWorkerPort).get()).toBuf());
-    }
-
-    @Override
     protected void channelRead0(ChannelHandlerContext ctx, ProxyMessage proxyMessage) throws Exception {
         Channel bossChannel = ctx.channel();
         switch (proxyMessage.type()) {
             case Data: {
                 DataMessage message = (DataMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
-                workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
+                if (workerChannel.isActive()) {
+                    workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
+                } else {
+                    workerChannel.attr(AttributeKeys.cacheData).setIfAbsent(new ConcurrentLinkedDeque<>());
+                    workerChannel.attr(AttributeKeys.cacheData).get().add(Unpooled.wrappedBuffer(message.bytes()));
+                }
                 break;
             }
             case Connect: {
@@ -51,7 +48,7 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             case Disconnect: {
                 DisconnectMessage message = (DisconnectMessage) proxyMessage;
                 Map<String, Channel> workerChannelMap = bossChannel.attr(AttributeKeys.workerChannelMap).get();
-                Channel workerChannel = workerChannelMap.get(message.key());
+                Channel workerChannel = workerChannelMap.remove(message.key());
                 if (workerChannel != null) {
                     workerChannel.close();
                 }

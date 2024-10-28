@@ -11,12 +11,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 @ChannelHandler.Sharable
 public class WorkerClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        Channel workerChannel = ctx.channel();
-        workerChannel.attr(AttributeKeys.bossChannel).get().attr(AttributeKeys.workerChannelMap).get()
-                .put(workerChannel.attr(AttributeKeys.workerKey).get(), workerChannel);
-    }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
