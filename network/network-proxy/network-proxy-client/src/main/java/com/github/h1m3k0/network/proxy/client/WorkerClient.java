@@ -2,11 +2,9 @@ package com.github.h1m3k0.network.proxy.client;
 
 import com.github.h1m3k0.network.proxy.client.handler.WorkerClientHandler;
 import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
-import com.github.h1m3k0.network.proxy.common.ProxyPacket;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -35,7 +33,7 @@ public class WorkerClient {
         workerChannel.attr(AttributeKeys.workerKey).set(key);
         channelFuture.addListener(future -> {
             if (!future.isSuccess()) {
-                bossChannel.writeAndFlush(new ProxyPacket(new DisconnectMessage(key)).toBuf());
+                bossChannel.writeAndFlush(new DisconnectMessage(key).toBuf());
             }
         });
     }

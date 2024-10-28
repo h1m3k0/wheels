@@ -2,7 +2,7 @@ package com.github.h1m3k0.network.proxy.server.handler;
 
 import com.github.h1m3k0.network.proxy.common.DataMessage;
 import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
-import com.github.h1m3k0.network.proxy.common.ProxyPacket;
+import com.github.h1m3k0.network.proxy.common.ProxyMessage;
 import com.github.h1m3k0.network.proxy.common.RegisterMessage;
 import com.github.h1m3k0.network.proxy.server.AttributeKeys;
 import com.github.h1m3k0.network.proxy.server.WorkerServer;
@@ -15,7 +15,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import java.util.HashMap;
 
 @ChannelHandler.Sharable
-public class BossServerHandler extends SimpleChannelInboundHandler<ProxyPacket> {
+public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage> {
     private final WorkerServer workerServer;
 
     public BossServerHandler(WorkerServer workerServer) {
@@ -34,22 +34,22 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyPacket> 
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ProxyPacket packet) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, ProxyMessage proxyMessage) throws Exception {
         Channel bossChannel = ctx.channel();
-        switch (packet.type()) {
+        switch (proxyMessage.type()) {
             case Data: {
-                DataMessage message = (DataMessage) packet.message();
+                DataMessage message = (DataMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
                 workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
                 break;
             }
             case Register:{
-                RegisterMessage message = (RegisterMessage) packet.message();
+                RegisterMessage message = (RegisterMessage) proxyMessage;
                 workerServer.bind(message.port(), bossChannel);
                 break;
             }
             case Disconnect: {
-                DisconnectMessage message = (DisconnectMessage) packet.message();
+                DisconnectMessage message = (DisconnectMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
                 workerChannel.close();
                 break;

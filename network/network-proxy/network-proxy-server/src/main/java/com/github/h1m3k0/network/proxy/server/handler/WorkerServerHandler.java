@@ -3,7 +3,6 @@ package com.github.h1m3k0.network.proxy.server.handler;
 import com.github.h1m3k0.network.proxy.common.ConnectMessage;
 import com.github.h1m3k0.network.proxy.common.DataMessage;
 import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
-import com.github.h1m3k0.network.proxy.common.ProxyPacket;
 import com.github.h1m3k0.network.proxy.server.AttributeKeys;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -33,7 +32,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel bossChannel = PortBossChannelMap.get(address.getPort());
         workerChannel.attr(AttributeKeys.bossChannel).set(bossChannel);
         bossChannel.attr(AttributeKeys.workerChannelMap).get().put(key, workerChannel);
-        bossChannel.pipeline().writeAndFlush(new ProxyPacket(new ConnectMessage(key)).toBuf());
+        bossChannel.pipeline().writeAndFlush(new ConnectMessage(key).toBuf());
     }
 
     @Override
@@ -41,7 +40,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel workerChannel = ctx.channel();
         String key = workerChannel.attr(AttributeKeys.workerKey).get();
         Channel bossChannel = workerChannel.attr(AttributeKeys.bossChannel).get();
-        bossChannel.pipeline().writeAndFlush(new ProxyPacket(new DisconnectMessage(key)).toBuf());
+        bossChannel.pipeline().writeAndFlush(new DisconnectMessage(key).toBuf());
     }
 
     @Override
@@ -50,8 +49,8 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         String key = ctx.channel().attr(AttributeKeys.workerKey).get();
         byte[] dataBytes = new byte[buf.readableBytes()];
         buf.readBytes(dataBytes);
-        ProxyPacket packet = new ProxyPacket(new DataMessage(key, dataBytes));
-        bossChannel.pipeline().writeAndFlush(packet.toBuf());
+        DataMessage message = new DataMessage(key, dataBytes);
+        bossChannel.pipeline().writeAndFlush(message.toBuf());
     }
 
     @Override

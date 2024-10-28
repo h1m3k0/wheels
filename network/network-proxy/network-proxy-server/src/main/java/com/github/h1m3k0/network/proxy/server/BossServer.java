@@ -1,6 +1,6 @@
 package com.github.h1m3k0.network.proxy.server;
 
-import com.github.h1m3k0.network.proxy.common.ProxyPacketDecoder;
+import com.github.h1m3k0.network.proxy.common.ProxyMessageDecoder;
 import com.github.h1m3k0.network.proxy.server.handler.BossServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -17,7 +17,7 @@ public class BossServer {
      */
     public BossServer(final int port) {
         WorkerServer workerServer = new WorkerServer();
-        ProxyPacketDecoder decoder = new ProxyPacketDecoder();
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder();
         BossServerHandler handler = new BossServerHandler(workerServer);
 
         ServerBootstrap bootstrap = new ServerBootstrap();

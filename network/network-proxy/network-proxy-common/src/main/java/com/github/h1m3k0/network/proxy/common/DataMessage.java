@@ -1,18 +1,21 @@
 package com.github.h1m3k0.network.proxy.common;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true, fluent = true)
-public class DataMessage implements ProxyMessage {
+public class DataMessage extends ProxyMessage {
     private String key;
     private byte[] bytes;
 
     public DataMessage(byte[] bytes) {
+        super(ProxyType.Data);
         byte[] keyBytes = new byte[UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8).length];
         System.arraycopy(bytes, 0, keyBytes, 0, keyBytes.length);
         this.key = new String(keyBytes, StandardCharsets.UTF_8);
@@ -21,6 +24,7 @@ public class DataMessage implements ProxyMessage {
     }
 
     public DataMessage(String key, byte[] bytes) {
+        super(ProxyType.Data);
         this.key = key;
         this.bytes = bytes;
     }

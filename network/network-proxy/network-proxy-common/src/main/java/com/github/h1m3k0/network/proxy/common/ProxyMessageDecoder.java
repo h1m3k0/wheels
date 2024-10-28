@@ -8,7 +8,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 
 @ChannelHandler.Sharable
-public class ProxyPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
+public class ProxyMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
@@ -16,6 +16,19 @@ public class ProxyPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
         int type = buf.readInt();
         byte[] bytes = new byte[length - 4];
         buf.readBytes(bytes);
-        out.add(new ProxyPacket(ProxyPacketType.get(type), bytes));
+        switch (ProxyType.get(type)) {
+            case Data:
+                out.add(new DataMessage(bytes));
+                break;
+            case Register:
+                out.add(new RegisterMessage(bytes));
+                break;
+            case Connect:
+                out.add(new ConnectMessage(bytes));
+                break;
+            case Disconnect:
+                out.add(new DisconnectMessage(bytes));
+                break;
+        }
     }
 }

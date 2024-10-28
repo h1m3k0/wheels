@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ChannelHandler.Sharable
-public class BossClientHandler extends SimpleChannelInboundHandler<ProxyPacket> {
+public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage> {
     private final WorkerClient workerClient;
 
     public BossClientHandler(WorkerClient workerClient) {
@@ -26,23 +26,21 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyPacket> 
         while (bossChannel.attr(AttributeKeys.targetWorkerPort).get() == null) {
             Thread.sleep(1);
         }
-        bossChannel.writeAndFlush(new ProxyPacket(
-                new RegisterMessage(ctx.channel().attr(AttributeKeys.targetWorkerPort).get()
-                )).toBuf());
+        bossChannel.writeAndFlush(new RegisterMessage(ctx.channel().attr(AttributeKeys.targetWorkerPort).get()).toBuf());
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ProxyPacket packet) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, ProxyMessage proxyMessage) throws Exception {
         Channel bossChannel = ctx.channel();
-        switch (packet.type()) {
+        switch (proxyMessage.type()) {
             case Data: {
-                DataMessage message = (DataMessage) packet.message();
+                DataMessage message = (DataMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
                 workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
                 break;
             }
             case Connect: {
-                ConnectMessage message = (ConnectMessage) packet.message();
+                ConnectMessage message = (ConnectMessage) proxyMessage;
                 bossChannel.attr(AttributeKeys.workerChannelMap).set(new HashMap<>());
                 workerClient.connect(
                         bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
@@ -51,7 +49,7 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyPacket> 
                 break;
             }
             case Disconnect: {
-                DisconnectMessage message = (DisconnectMessage) packet.message();
+                DisconnectMessage message = (DisconnectMessage) proxyMessage;
                 Map<String, Channel> workerChannelMap = bossChannel.attr(AttributeKeys.workerChannelMap).get();
                 Channel workerChannel = workerChannelMap.get(message.key());
                 if (workerChannel != null) {
