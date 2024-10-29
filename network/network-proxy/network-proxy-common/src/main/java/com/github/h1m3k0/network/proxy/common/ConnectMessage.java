@@ -1,5 +1,6 @@
 package com.github.h1m3k0.network.proxy.common;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -12,8 +13,10 @@ import java.nio.charset.StandardCharsets;
 public class ConnectMessage extends ProxyMessage {
     private String key;
 
-    public ConnectMessage(byte[] bytes) {
+    public ConnectMessage(ByteBuf buf) {
         super(ProxyType.Connect);
+        byte[] bytes = new byte[36];
+        buf.readBytes(bytes);
         this.key = new String(bytes, StandardCharsets.UTF_8);
     }
 
@@ -23,7 +26,7 @@ public class ConnectMessage extends ProxyMessage {
     }
 
     @Override
-    public byte[] toBytes() {
-        return this.key.getBytes(StandardCharsets.UTF_8);
+    protected byte[][] toByteArray() {
+        return new byte[][]{this.key.getBytes(StandardCharsets.UTF_8)};
     }
 }

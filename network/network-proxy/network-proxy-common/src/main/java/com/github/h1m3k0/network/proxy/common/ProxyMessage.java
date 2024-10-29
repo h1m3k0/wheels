@@ -14,13 +14,15 @@ public abstract class ProxyMessage {
         this.type = type;
     }
 
-    public abstract byte[] toBytes();
+    protected abstract byte[][] toByteArray();
 
     public ByteBuf toBuf() {
         ByteBuf buf = ByteBufAllocator.DEFAULT.buffer();
         buf.writeInt(0);
         buf.writeInt(this.type.code());
-        buf.writeBytes(toBytes());
+        for (byte[] bytes : toByteArray()) {
+            buf.writeBytes(bytes);
+        }
         buf.setInt(0, buf.readableBytes() - 4);
         return buf;
     }

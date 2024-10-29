@@ -12,25 +12,23 @@ public class ProxyMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-        int length = buf.readInt();
+        buf.readInt();
         int type = buf.readInt();
-        byte[] bytes = new byte[length - 4];
-        buf.readBytes(bytes);
         switch (ProxyType.get(type)) {
             case Data:
-                out.add(new DataMessage(bytes));
+                out.add(new DataMessage(buf));
                 break;
             case Register:
-                out.add(new RegisterMessage(bytes));
+                out.add(new RegisterMessage(buf));
                 break;
             case UnRegister:
-                out.add(new UnRegisterMessage(bytes));
+                out.add(new UnRegisterMessage(buf));
                 break;
             case Connect:
-                out.add(new ConnectMessage(bytes));
+                out.add(new ConnectMessage(buf));
                 break;
             case Disconnect:
-                out.add(new DisconnectMessage(bytes));
+                out.add(new DisconnectMessage(buf));
                 break;
         }
     }
