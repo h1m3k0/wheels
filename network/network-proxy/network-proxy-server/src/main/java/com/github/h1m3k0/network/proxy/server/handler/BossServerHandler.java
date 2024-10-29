@@ -40,7 +40,7 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage>
             case Data: {
                 DataMessage message = (DataMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
-                workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
+                workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.data()));
                 break;
             }
             case Register: {

@@ -11,22 +11,20 @@ import java.nio.charset.StandardCharsets;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class DisconnectMessage extends ProxyMessage {
-    private String key;
+    private MessageKey key;
 
     public DisconnectMessage(ByteBuf buf) {
         super(ProxyType.Disconnect);
-        byte[] bytes = new byte[36];
-        buf.readBytes(bytes);
-        this.key = new String(bytes, StandardCharsets.UTF_8);
+        this.key = new MessageKey(buf);
     }
 
-    public DisconnectMessage(String key) {
+    public DisconnectMessage(MessageKey key) {
         super(ProxyType.Disconnect);
         this.key = key;
     }
 
     @Override
     protected byte[][] toByteArray() {
-        return new byte[][]{this.key.getBytes(StandardCharsets.UTF_8)};
+        return new byte[][]{this.key.bytes()};
     }
 }

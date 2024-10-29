@@ -11,22 +11,20 @@ import java.nio.charset.StandardCharsets;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class ConnectMessage extends ProxyMessage {
-    private String key;
+    private MessageKey key;
 
     public ConnectMessage(ByteBuf buf) {
         super(ProxyType.Connect);
-        byte[] bytes = new byte[36];
-        buf.readBytes(bytes);
-        this.key = new String(bytes, StandardCharsets.UTF_8);
+        this.key = new MessageKey(buf);
     }
 
-    public ConnectMessage(String key) {
+    public ConnectMessage(MessageKey key) {
         super(ProxyType.Connect);
         this.key = key;
     }
 
     @Override
     protected byte[][] toByteArray() {
-        return new byte[][]{this.key.getBytes(StandardCharsets.UTF_8)};
+        return new byte[][]{this.key.bytes()};
     }
 }

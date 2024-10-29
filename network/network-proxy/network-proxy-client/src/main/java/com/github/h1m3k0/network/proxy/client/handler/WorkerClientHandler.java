@@ -3,6 +3,7 @@ package com.github.h1m3k0.network.proxy.client.handler;
 import com.github.h1m3k0.network.proxy.client.AttributeKeys;
 import com.github.h1m3k0.network.proxy.common.DataMessage;
 import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
+import com.github.h1m3k0.network.proxy.common.MessageKey;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -13,16 +14,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class WorkerClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        Channel workerChannel = ctx.channel();
-        Channel bossChannel = workerChannel.attr(AttributeKeys.bossChannel).get();
-        bossChannel.writeAndFlush(new DisconnectMessage(workerChannel.attr(AttributeKeys.workerKey).get()).toBuf());
-    }
-
-    @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf buf) throws Exception {
         Channel workerChannel = ctx.channel();
-        String key = workerChannel.attr(AttributeKeys.workerKey).get();
+        MessageKey key = workerChannel.attr(AttributeKeys.workerKey).get();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
         workerChannel.attr(AttributeKeys.bossChannel).get().writeAndFlush(new DataMessage(key, bytes).toBuf());

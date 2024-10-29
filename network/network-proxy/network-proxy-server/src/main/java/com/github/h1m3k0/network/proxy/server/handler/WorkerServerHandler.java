@@ -3,6 +3,7 @@ package com.github.h1m3k0.network.proxy.server.handler;
 import com.github.h1m3k0.network.proxy.common.ConnectMessage;
 import com.github.h1m3k0.network.proxy.common.DataMessage;
 import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
+import com.github.h1m3k0.network.proxy.common.MessageKey;
 import com.github.h1m3k0.network.proxy.server.AttributeKeys;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -25,8 +26,8 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        String key = UUID.randomUUID().toString();
         Channel workerChannel = ctx.channel();
+        MessageKey key = new MessageKey();
         workerChannel.attr(AttributeKeys.workerKey).set(key);
         InetSocketAddress address = (InetSocketAddress) workerChannel.localAddress();
         Channel bossChannel = PortBossChannelMap.get(address.getPort());
@@ -38,7 +39,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         Channel workerChannel = ctx.channel();
-        String key = workerChannel.attr(AttributeKeys.workerKey).get();
+        MessageKey key = workerChannel.attr(AttributeKeys.workerKey).get();
         Channel bossChannel = workerChannel.attr(AttributeKeys.bossChannel).get();
         bossChannel.pipeline().writeAndFlush(new DisconnectMessage(key).toBuf());
     }
@@ -46,7 +47,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf buf) throws Exception {
         Channel bossChannel = ctx.channel().attr(AttributeKeys.bossChannel).get();
-        String key = ctx.channel().attr(AttributeKeys.workerKey).get();
+        MessageKey key = ctx.channel().attr(AttributeKeys.workerKey).get();
         byte[] dataBytes = new byte[buf.readableBytes()];
         buf.readBytes(dataBytes);
         DataMessage message = new DataMessage(key, dataBytes);

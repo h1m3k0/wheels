@@ -30,10 +30,10 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
                 DataMessage message = (DataMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
                 if (workerChannel.isActive()) {
-                    workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
+                    workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.data()));
                 } else {
                     workerChannel.attr(AttributeKeys.cacheData).setIfAbsent(new ConcurrentLinkedDeque<>());
-                    workerChannel.attr(AttributeKeys.cacheData).get().add(Unpooled.wrappedBuffer(message.bytes()));
+                    workerChannel.attr(AttributeKeys.cacheData).get().add(Unpooled.wrappedBuffer(message.data()));
                 }
                 break;
             }
@@ -45,7 +45,6 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             }
             case Connect: {
                 ConnectMessage message = (ConnectMessage) proxyMessage;
-                bossChannel.attr(AttributeKeys.workerChannelMap).set(new HashMap<>());
                 workerClientPool.newClient(new WorkerConfig(
                         bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
                         bossChannel.attr(AttributeKeys.thisWorkerPort).get(),
@@ -54,7 +53,7 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             }
             case Disconnect: {
                 DisconnectMessage message = (DisconnectMessage) proxyMessage;
-                Map<String, Channel> workerChannelMap = bossChannel.attr(AttributeKeys.workerChannelMap).get();
+                Map<MessageKey, Channel> workerChannelMap = bossChannel.attr(AttributeKeys.workerChannelMap).get();
                 Channel workerChannel = workerChannelMap.remove(message.key());
                 if (workerChannel != null) {
                     workerChannel.close();
