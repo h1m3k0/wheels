@@ -8,8 +8,9 @@ public class ClientMain {
     public static void main(String[] args) {
         try {
             BossClientPool pool = new BossClientPool();
-            BossClient client1 = pool.newClient(new BossConfig("localhost", 12300, "localhost", 12312, 11223));
-            client1.connect();
+            BossClient client1 = pool.newClient(new BossConfig("localhost", 12300));
+            client1.connect().sync();
+            client1.register(12312, 11223);
 //            BossClient client2 = pool.newClient(new BossConfig("localhost", 12300, "localhost", 2404, 12313));
 //            client2.connect();
         } catch (Exception e) {
