@@ -10,7 +10,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -45,10 +44,13 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             }
             case Connect: {
                 ConnectMessage message = (ConnectMessage) proxyMessage;
-                workerClientPool.newClient(new WorkerConfig(
-                        bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
-                        bossChannel.attr(AttributeKeys.thisWorkerPort).get(),
-                        bossChannel, message.key())).connect();
+                bossChannel.attr(AttributeKeys.workerChannelMap).get().put(message.key(),
+                        workerClientPool.newClient(new WorkerConfig(
+                                        bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
+                                        bossChannel.attr(AttributeKeys.thisWorkerPort).get(),
+                                        bossChannel, message.key()))
+                                .connect()
+                                .channel());
                 break;
             }
             case Disconnect: {

@@ -2,7 +2,6 @@ package com.github.h1m3k0.network.proxy.client.handler;
 
 import com.github.h1m3k0.network.proxy.client.AttributeKeys;
 import com.github.h1m3k0.network.proxy.common.DataMessage;
-import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
 import com.github.h1m3k0.network.proxy.common.MessageKey;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

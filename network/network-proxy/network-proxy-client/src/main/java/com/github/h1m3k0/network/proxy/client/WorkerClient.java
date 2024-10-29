@@ -14,7 +14,6 @@ public class WorkerClient extends Client<WorkerConfig, WorkerClient, WorkerClien
             if (future.isSuccess()) {
                 channel.attr(AttributeKeys.bossChannel).set(config.bossChannel());
                 channel.attr(AttributeKeys.workerKey).set(config.key());
-                config.bossChannel().attr(AttributeKeys.workerChannelMap).get().put(config.key(), channel);
                 Queue<ByteBuf> queue = channel.attr(AttributeKeys.cacheData).get();
                 if (queue != null) {
                     ByteBuf buf;

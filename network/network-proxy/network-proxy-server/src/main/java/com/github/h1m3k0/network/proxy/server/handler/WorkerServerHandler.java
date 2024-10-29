@@ -13,7 +13,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.UUID;
 
 @ChannelHandler.Sharable
 public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
