@@ -28,12 +28,7 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             case Data: {
                 DataMessage message = (DataMessage) proxyMessage;
                 Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
-                if (workerChannel.isActive()) {
-                    workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.data()));
-                } else {
-                    workerChannel.attr(AttributeKeys.cacheData).setIfAbsent(new ConcurrentLinkedDeque<>());
-                    workerChannel.attr(AttributeKeys.cacheData).get().add(Unpooled.wrappedBuffer(message.data()));
-                }
+                workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.data()));
                 break;
             }
             case UnRegister: {
@@ -44,13 +39,11 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             }
             case Connect: {
                 ConnectMessage message = (ConnectMessage) proxyMessage;
-                bossChannel.attr(AttributeKeys.workerChannelMap).get().put(message.key(),
-                        workerClientPool.newClient(new WorkerConfig(
-                                        bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
-                                        bossChannel.attr(AttributeKeys.thisWorkerPort).get(),
-                                        bossChannel, message.key()))
-                                .connect()
-                                .channel());
+                workerClientPool.newClient(new WorkerConfig(
+                                bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
+                                bossChannel.attr(AttributeKeys.thisWorkerPort).get(),
+                                bossChannel, message.key()))
+                        .connect();
                 break;
             }
             case Disconnect: {

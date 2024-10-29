@@ -13,6 +13,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @ChannelHandler.Sharable
 public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
@@ -31,6 +32,8 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         InetSocketAddress address = (InetSocketAddress) workerChannel.localAddress();
         Channel bossChannel = PortBossChannelMap.get(address.getPort());
         workerChannel.attr(AttributeKeys.bossChannel).set(bossChannel);
+        workerChannel.attr(AttributeKeys.connected).set(false);
+        workerChannel.attr(AttributeKeys.initData).set(new ConcurrentLinkedQueue<>());
         bossChannel.attr(AttributeKeys.workerChannelMap).get().put(key, workerChannel);
         bossChannel.pipeline().writeAndFlush(new ConnectMessage(key).toBuf());
     }
@@ -45,12 +48,16 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf buf) throws Exception {
-        Channel bossChannel = ctx.channel().attr(AttributeKeys.bossChannel).get();
-        MessageKey key = ctx.channel().attr(AttributeKeys.workerKey).get();
+        Channel workerChannel = ctx.channel();
+        Channel bossChannel = workerChannel.attr(AttributeKeys.bossChannel).get();
         byte[] dataBytes = new byte[buf.readableBytes()];
         buf.readBytes(dataBytes);
-        DataMessage message = new DataMessage(key, dataBytes);
-        bossChannel.pipeline().writeAndFlush(message.toBuf());
+        if (workerChannel.attr(AttributeKeys.connected).get()) {
+            MessageKey key = workerChannel.attr(AttributeKeys.workerKey).get();
+            bossChannel.pipeline().writeAndFlush(new DataMessage(key, dataBytes).toBuf());
+        } else {
+            workerChannel.attr(AttributeKeys.initData).get().add(dataBytes);
+        }
     }
 
     @Override

@@ -1,9 +1,6 @@
 package com.github.h1m3k0.network.proxy.server.handler;
 
-import com.github.h1m3k0.network.proxy.common.DataMessage;
-import com.github.h1m3k0.network.proxy.common.DisconnectMessage;
-import com.github.h1m3k0.network.proxy.common.ProxyMessage;
-import com.github.h1m3k0.network.proxy.common.RegisterMessage;
+import com.github.h1m3k0.network.proxy.common.*;
 import com.github.h1m3k0.network.proxy.server.AttributeKeys;
 import com.github.h1m3k0.network.proxy.server.WorkerServer;
 import io.netty.buffer.Unpooled;
@@ -13,6 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.HashMap;
+import java.util.Queue;
 
 @ChannelHandler.Sharable
 public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage> {
@@ -46,6 +44,17 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage>
             case Register: {
                 RegisterMessage message = (RegisterMessage) proxyMessage;
                 workerServer.bind(message.port(), bossChannel);
+                break;
+            }
+            case Connect: {
+                ConnectMessage message = (ConnectMessage) proxyMessage;
+                Channel workerChannel = bossChannel.attr(AttributeKeys.workerChannelMap).get().get(message.key());
+                Queue<byte[]> initData = workerChannel.attr(AttributeKeys.initData).get();
+                byte[] bytes;
+                while ((bytes = initData.poll()) != null) {
+                    bossChannel.writeAndFlush(new DataMessage(message.key(), bytes).toBuf());
+                }
+                workerChannel.attr(AttributeKeys.connected).set(true);
                 break;
             }
             case Disconnect: {

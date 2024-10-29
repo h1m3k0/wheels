@@ -5,10 +5,13 @@ import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 
 import java.util.Map;
+import java.util.Queue;
 
 public class AttributeKeys {
     public static final AttributeKey<Map<MessageKey, Channel>> workerChannelMap = AttributeKey.valueOf("workerChannelMap");
     public static final AttributeKey<Channel> linkChannel = AttributeKey.valueOf("linkChannel");
     public static final AttributeKey<MessageKey> workerKey = AttributeKey.valueOf("workerKey");
     public static final AttributeKey<Channel> bossChannel = AttributeKey.valueOf("bossChannel");
+    public static final AttributeKey<Queue<byte[]>> initData = AttributeKey.valueOf("initData");
+    public static final AttributeKey<Boolean> connected = AttributeKey.valueOf("connected");
 }
