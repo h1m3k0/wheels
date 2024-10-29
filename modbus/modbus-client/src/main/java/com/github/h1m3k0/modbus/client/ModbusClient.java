@@ -1,6 +1,6 @@
 package com.github.h1m3k0.modbus.client;
 
-import com.github.h1m3k0.common.netty.client.Client;
+import com.github.h1m3k0.common.netty.client.RcClient;
 import com.github.h1m3k0.modbus.client.service.ModbusService;
 import com.github.h1m3k0.modbus.core.ModbusException;
 import com.github.h1m3k0.modbus.core.ModbusMessage;
@@ -12,7 +12,7 @@ import com.github.h1m3k0.modbus.core.response.ModbusResponse;
 
 import java.util.concurrent.*;
 
-public class ModbusClient extends Client<ModbusConfig, ModbusClient, ModbusClientPool> {
+public class ModbusClient extends RcClient<ModbusConfig, ModbusClient, ModbusClientPool> {
     private final int maxNumber;
     private final Byte slaveId;
     private final long requestTimeout;
