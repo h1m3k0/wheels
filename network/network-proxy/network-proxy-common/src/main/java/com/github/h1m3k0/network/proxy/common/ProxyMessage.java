@@ -15,6 +15,7 @@ public abstract class ProxyMessage {
     }
 
     public abstract byte[] toBytes();
+
     public ByteBuf toBuf() {
         ByteBuf buf = ByteBufAllocator.DEFAULT.buffer();
         buf.writeInt(0);

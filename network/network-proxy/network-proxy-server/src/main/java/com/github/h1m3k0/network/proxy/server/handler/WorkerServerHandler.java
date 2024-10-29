@@ -25,6 +25,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println(ctx.channel().remoteAddress());
         String key = UUID.randomUUID().toString();
         Channel workerChannel = ctx.channel();
         workerChannel.attr(AttributeKeys.workerKey).set(key);

@@ -1,29 +1,17 @@
 package com.github.h1m3k0.network.proxy.client;
 
-import com.github.h1m3k0.common.netty.client.Client;
+import com.github.h1m3k0.common.netty.client.RcClient;
 import com.github.h1m3k0.network.proxy.common.RegisterMessage;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 
-public class BossClient extends Client<BossConfig, BossClient, BossClientPool> {
-    private final BossConfig config;
-
+public class BossClient extends RcClient<BossConfig, BossClient, BossClientPool> {
     public BossClient(BossClientPool pool, BossConfig config) {
         super(pool, config.host(), config.port());
-        this.config = config;
-    }
-
-    public ChannelFuture connect() {
-        ChannelFuture channelFuture = super.connect();
-        Channel bossChannel = channelFuture.channel();
-        bossChannel.attr(AttributeKeys.thisWorkerHost).set(config.thisWorkerHost());
-        bossChannel.attr(AttributeKeys.thisWorkerPort).set(config.thisWorkerPort());
-        channelFuture.addListener(future -> {
+        addConnectFutureListener(future -> {
             if (future.isSuccess()) {
-                bossChannel.writeAndFlush(new RegisterMessage(config.targetWorkerPort()).toBuf());
+                channel.attr(AttributeKeys.thisWorkerHost).set(config.thisWorkerHost());
+                channel.attr(AttributeKeys.thisWorkerPort).set(config.thisWorkerPort());
+                channel.writeAndFlush(new RegisterMessage(config.targetWorkerPort()).toBuf());
             }
         });
-
-        return channelFuture;
     }
 }

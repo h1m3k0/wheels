@@ -1,7 +1,8 @@
 package com.github.h1m3k0.network.proxy.client.handler;
 
 import com.github.h1m3k0.network.proxy.client.AttributeKeys;
-import com.github.h1m3k0.network.proxy.client.WorkerClient;
+import com.github.h1m3k0.network.proxy.client.WorkerClientPool;
+import com.github.h1m3k0.network.proxy.client.WorkerConfig;
 import com.github.h1m3k0.network.proxy.common.*;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -15,10 +16,10 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 @ChannelHandler.Sharable
 public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage> {
-    private final WorkerClient workerClient;
+    private final WorkerClientPool workerClientPool;
 
-    public BossClientHandler(WorkerClient workerClient) {
-        this.workerClient = workerClient;
+    public BossClientHandler(WorkerClientPool workerClientPool) {
+        this.workerClientPool = workerClientPool;
     }
 
     @Override
@@ -45,10 +46,10 @@ public class BossClientHandler extends SimpleChannelInboundHandler<ProxyMessage>
             case Connect: {
                 ConnectMessage message = (ConnectMessage) proxyMessage;
                 bossChannel.attr(AttributeKeys.workerChannelMap).set(new HashMap<>());
-                workerClient.connect(
+                workerClientPool.newClient(new WorkerConfig(
                         bossChannel.attr(AttributeKeys.thisWorkerHost).get(),
                         bossChannel.attr(AttributeKeys.thisWorkerPort).get(),
-                        bossChannel, message.key());
+                        bossChannel, message.key())).connect();
                 break;
             }
             case Disconnect: {

@@ -11,7 +11,7 @@ public class BossClientPool extends ClientPool<BossConfig, BossClient, BossClien
 
     public BossClientPool() {
         ProxyMessageDecoder decoder = new ProxyMessageDecoder();
-        BossClientHandler handler = new BossClientHandler(new WorkerClient());
+        BossClientHandler handler = new BossClientHandler(new WorkerClientPool());
         bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {

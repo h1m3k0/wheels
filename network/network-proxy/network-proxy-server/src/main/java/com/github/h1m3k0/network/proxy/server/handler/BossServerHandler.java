@@ -43,7 +43,7 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage>
                 workerChannel.writeAndFlush(Unpooled.wrappedBuffer(message.bytes()));
                 break;
             }
-            case Register:{
+            case Register: {
                 RegisterMessage message = (RegisterMessage) proxyMessage;
                 workerServer.bind(message.port(), bossChannel);
                 break;
