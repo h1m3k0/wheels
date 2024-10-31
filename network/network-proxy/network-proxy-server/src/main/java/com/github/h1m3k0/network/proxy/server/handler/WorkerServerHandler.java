@@ -35,7 +35,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         workerChannel.attr(AttributeKeys.connected).set(false);
         workerChannel.attr(AttributeKeys.initData).set(new ConcurrentLinkedQueue<>());
         bossChannel.attr(AttributeKeys.workerChannelMap).get().put(key, workerChannel);
-        bossChannel.pipeline().writeAndFlush(new ConnectMessage(key).toBuf());
+        bossChannel.pipeline().writeAndFlush(new ConnectMessage(key));
     }
 
     @Override
@@ -43,7 +43,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel workerChannel = ctx.channel();
         MessageKey key = workerChannel.attr(AttributeKeys.workerKey).get();
         Channel bossChannel = workerChannel.attr(AttributeKeys.bossChannel).get();
-        bossChannel.pipeline().writeAndFlush(new DisconnectMessage(key).toBuf());
+        bossChannel.pipeline().writeAndFlush(new DisconnectMessage(key));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class WorkerServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         buf.readBytes(dataBytes);
         if (workerChannel.attr(AttributeKeys.connected).get()) {
             MessageKey key = workerChannel.attr(AttributeKeys.workerKey).get();
-            bossChannel.pipeline().writeAndFlush(new DataMessage(key, dataBytes).toBuf());
+            bossChannel.pipeline().writeAndFlush(new DataMessage(key, dataBytes));
         } else {
             workerChannel.attr(AttributeKeys.initData).get().add(dataBytes);
         }

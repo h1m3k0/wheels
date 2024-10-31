@@ -1,8 +1,5 @@
 package com.github.h1m3k0.network.proxy.common;
 
-import com.github.h1m3k0.common.bytes.Byte4Number;
-import com.github.h1m3k0.common.bytes.ByteArray;
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -13,19 +10,8 @@ import lombok.experimental.Accessors;
 public class UnRegisterMessage extends ProxyMessage {
     private int port;
 
-    public UnRegisterMessage(ByteBuf buf) {
-        super(ProxyType.UnRegister);
-        Byte4Number byte4Number = new Byte4Number(ByteArray.byteBuf(buf));
-        this.port = (int) byte4Number.toInt();
-    }
-
     public UnRegisterMessage(int port) {
         super(ProxyType.UnRegister);
         this.port = port;
-    }
-
-    @Override
-    protected byte[][] toByteArray() {
-        return new byte[][]{new Byte4Number(port).toBytes()};
     }
 }

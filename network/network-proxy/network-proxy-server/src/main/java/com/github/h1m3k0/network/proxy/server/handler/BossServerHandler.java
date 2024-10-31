@@ -52,7 +52,7 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage>
                 Queue<byte[]> initData = workerChannel.attr(AttributeKeys.initData).get();
                 byte[] bytes;
                 while ((bytes = initData.poll()) != null) {
-                    bossChannel.writeAndFlush(new DataMessage(message.key(), bytes).toBuf());
+                    bossChannel.writeAndFlush(new DataMessage(message.key(), bytes));
                 }
                 workerChannel.attr(AttributeKeys.connected).set(true);
                 break;

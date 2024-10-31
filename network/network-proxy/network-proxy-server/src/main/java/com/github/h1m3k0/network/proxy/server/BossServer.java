@@ -1,6 +1,6 @@
 package com.github.h1m3k0.network.proxy.server;
 
-import com.github.h1m3k0.network.proxy.common.ProxyMessageDecoder;
+import com.github.h1m3k0.network.proxy.common.ProxyMessageCodec;
 import com.github.h1m3k0.network.proxy.server.handler.BossServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -15,7 +15,7 @@ public class BossServer {
      * @param port 主服务监听的端口号
      */
     public BossServer(final int port) {
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder();
+        ProxyMessageCodec codec = new ProxyMessageCodec();
         BossServerHandler handler = new BossServerHandler(new WorkerServer());
 
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -25,7 +25,7 @@ public class BossServer {
                     @Override
                     protected void initChannel(NioSocketChannel ch) {
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(10240, 0, 4));
-                        ch.pipeline().addLast(decoder, handler);
+                        ch.pipeline().addLast(codec, handler);
                     }
                 });
         bootstrap.bind(port).syncUninterruptibly();

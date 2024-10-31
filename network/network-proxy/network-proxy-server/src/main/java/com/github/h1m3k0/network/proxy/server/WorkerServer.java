@@ -36,7 +36,7 @@ public class WorkerServer {
         PortBossChannelMap.put(port, bossChannel);
         bossChannel.attr(AttributeKeys.linkChannel).set(linkChannel);
         linkChannel.closeFuture().addListener(listener -> {
-            bossChannel.writeAndFlush(new UnRegisterMessage(port).toBuf());
+            bossChannel.writeAndFlush(new UnRegisterMessage(port));
         });
     }
 }

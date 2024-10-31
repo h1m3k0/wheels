@@ -18,7 +18,7 @@ public class WorkerClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         MessageKey key = workerChannel.attr(AttributeKeys.workerKey).get();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
-        workerChannel.attr(AttributeKeys.bossChannel).get().writeAndFlush(new DataMessage(key, bytes).toBuf());
+        workerChannel.attr(AttributeKeys.bossChannel).get().writeAndFlush(new DataMessage(key, bytes));
     }
 
     @Override

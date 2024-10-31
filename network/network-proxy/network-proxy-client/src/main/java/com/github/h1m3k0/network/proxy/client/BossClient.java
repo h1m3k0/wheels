@@ -13,7 +13,7 @@ public class BossClient extends RcClient<BossConfig, BossClient, BossClientPool>
                 channel.attr(AttributeKeys.thisWorkerHost).set(config.thisWorkerHost());
                 channel.attr(AttributeKeys.thisWorkerPort).set(config.thisWorkerPort());
                 channel.attr(AttributeKeys.workerChannelMap).set(new ConcurrentHashMap<>());
-                channel.writeAndFlush(new RegisterMessage(config.targetWorkerPort()).toBuf());
+                channel.writeAndFlush(new RegisterMessage(config.targetWorkerPort()));
             }
         });
     }
