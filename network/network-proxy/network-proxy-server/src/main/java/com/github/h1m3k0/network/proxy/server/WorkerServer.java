@@ -36,6 +36,9 @@ public class WorkerServer {
         PortBossChannelMap.put(port, bossChannel);
         bossChannel.attr(AttributeKeys.linkChannel).set(linkChannel);
         linkChannel.closeFuture().addListener(listener -> {
+            if (PortBossChannelMap.get(port) == bossChannel) {
+                PortBossChannelMap.remove(port);
+            }
             bossChannel.writeAndFlush(new UnRegisterMessage(port));
         });
     }

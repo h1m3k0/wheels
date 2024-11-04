@@ -9,6 +9,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class BossServer {
 
     /**
@@ -21,6 +23,7 @@ public class BossServer {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.channel(NioServerSocketChannel.class)
                 .group(new NioEventLoopGroup(), new NioEventLoopGroup())
+                .childAttr(AttributeKeys.workerChannelMap, new ConcurrentHashMap<>())
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) {

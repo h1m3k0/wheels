@@ -9,7 +9,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.HashMap;
 import java.util.Queue;
 
 @ChannelHandler.Sharable
@@ -18,11 +17,6 @@ public class BossServerHandler extends SimpleChannelInboundHandler<ProxyMessage>
 
     public BossServerHandler(WorkerServer workerServer) {
         this.workerServer = workerServer;
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.channel().attr(AttributeKeys.workerChannelMap).set(new HashMap<>());
     }
 
     @Override
